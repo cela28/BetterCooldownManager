@@ -6,8 +6,8 @@ local function FetchPowerBarColour(unit)
     if PowerBarDB then
         if PowerBarDB.ColourByPower then
             local powerType = UnitPowerType(unit)
-            local powerColour = PowerBarDB.CustomColours.Power[powerType]
-            if powerColour then return PowerBarDB.CustomColours.Power[powerType][1], PowerBarDB.CustomColours.Power[powerType][2], PowerBarDB.CustomColours.Power[powerType][3], PowerBarDB.CustomColours.Power[powerType][4] or 1 end
+            local powerColour = PowerBarDB.CustomColours.PrimaryPower[powerType]
+            if powerColour then return PowerBarDB.CustomColours.PrimaryPower[powerType][1], PowerBarDB.CustomColours.PrimaryPower[powerType][2], PowerBarDB.CustomColours.PrimaryPower[powerType][3], PowerBarDB.CustomColours.PrimaryPower[powerType][4] or 1 end
         end
         return PowerBarDB.FGColour[1], PowerBarDB.FGColour[2], PowerBarDB.FGColour[3], PowerBarDB.FGColour[4]
     end
@@ -19,8 +19,8 @@ local function FetchPowerTextColour(unit)
     if PowerBarDB then
         if PowerBarDB.Text.ColourByPower then
             local powerType = UnitPowerType(unit)
-            local powerColour = PowerBarDB.CustomColours.Power[powerType]
-            if powerColour then return PowerBarDB.CustomColours.Power[powerType][1], PowerBarDB.CustomColours.Power[powerType][2], PowerBarDB.CustomColours.Power[powerType][3], PowerBarDB.CustomColours.Power[powerType][4] or 1 end
+            local powerColour = PowerBarDB.CustomColours.PrimaryPower[powerType]
+            if powerColour then return PowerBarDB.CustomColours.PrimaryPower[powerType][1], PowerBarDB.CustomColours.PrimaryPower[powerType][2], PowerBarDB.CustomColours.PrimaryPower[powerType][3], PowerBarDB.CustomColours.PrimaryPower[powerType][4] or 1 end
         end
         return PowerBarDB.Text.Colour[1], PowerBarDB.Text.Colour[2], PowerBarDB.Text.Colour[3], PowerBarDB.Text.Colour[4]
     end

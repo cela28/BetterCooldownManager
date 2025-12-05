@@ -19,6 +19,29 @@ local Anchors = {
     { "TOPLEFT", "TOP", "TOPRIGHT", "LEFT", "CENTER", "RIGHT", "BOTTOMLEFT", "BOTTOM", "BOTTOMRIGHT" }
 }
 
+local PowerNames = {
+    [0] = "Mana",
+    [1] = "Rage",
+    [2] = "Focus",
+    [3] = "Energy",
+    [4] = "Combo Points",
+    [5] = "Runes",
+    [6] = "Runic Power",
+    [7] = "Soul Shards",
+    [8] = "Astral Power",
+    [9] = "Holy Power",
+    [11] = "Maelstrom",
+    [12] = "Chi",
+    [13] = "Insanity",
+    [16] = "Arcane Charges",
+    [17] = "Fury",
+    [18] = "Pain",
+    [19] = "Essence",
+    ["STAGGER"] = "Stagger",
+    ["SOUL"] = "Soul",
+    ["MAELSTROM"] = "Maelstrom"
+}
+
 local PowerBarParents = {
     {
         ["EssentialCooldownViewer"] = "Essential",
@@ -158,6 +181,86 @@ local function DrawGeneralSettings(parentContainer)
     CooldownText_FontSize:SetCallback("OnValueChanged", function(_, _, value) GeneralDB.CooldownText.FontSize = value BCDM:RefreshAllViewers() end)
     CooldownTextContainer:AddChild(CooldownText_FontSize)
 
+    local CustomColoursContainer = AG:Create("InlineGroup")
+    CustomColoursContainer:SetTitle("Power Colours")
+    CustomColoursContainer:SetFullWidth(true)
+    CustomColoursContainer:SetLayout("Flow")
+    ScrollFrame:AddChild(CustomColoursContainer)
+
+    local DefaultColours = {
+        PrimaryPower = {
+            [0] = {0, 0, 1},            -- Mana
+            [1] = {1, 0, 0},            -- Rage
+            [2] = {1, 0.5, 0.25},       -- Focus
+            [3] = {1, 1, 0},            -- Energy
+            [6] = {0, 0.82, 1},         -- Runic Power
+            [8] = {0.75, 0.52, 0.9},     -- Lunar Power
+            [11] = {0, 0.5, 1},         -- Maelstrom
+            [13] = {0.4, 0, 0.8},       -- Insanity
+            [17] = {0.79, 0.26, 0.99},  -- Fury
+            [18] = {1, 0.61, 0}         -- Pain
+        },
+        SecondaryPower = {
+            [Enum.PowerType.Chi]           = {0.00, 1.00, 0.59 },
+            [Enum.PowerType.ComboPoints]   = {1.00, 0.96, 0.41 },
+            [Enum.PowerType.HolyPower]     = {0.95, 0.90, 0.60 },
+            [Enum.PowerType.ArcaneCharges] = {0.10, 0.10, 0.98},
+            [Enum.PowerType.Essence]       = { 0.20, 0.58, 0.50 },
+            [Enum.PowerType.SoulShards]    = { 0.58, 0.51, 0.79 },
+            STAGGER                        = { 0.00, 1.00, 0.59 },
+            [Enum.PowerType.Runes]         = { 0.77, 0.12, 0.23 },
+            SOUL                           = { 0.29, 0.42, 1.00},
+            MAELSTROM                      = { 0.25, 0.50, 0.80},
+        }
+    }
+
+    local PrimaryColoursContainer = AG:Create("InlineGroup")
+    PrimaryColoursContainer:SetTitle("Primary Colours")
+    PrimaryColoursContainer:SetFullWidth(true)
+    PrimaryColoursContainer:SetLayout("Flow")
+    CustomColoursContainer:AddChild(PrimaryColoursContainer)
+
+    local PowerOrder = {0, 1, 2, 3, 6, 8, 11, 13, 17, 18}
+    for _, powerType in ipairs(PowerOrder) do
+        local powerColour = BCDM.db.profile.PowerBar.CustomColours.PrimaryPower[powerType]
+        local PowerColour = AG:Create("ColorPicker")
+        PowerColour:SetLabel(PowerNames[powerType])
+        local R, G, B = unpack(powerColour)
+        PowerColour:SetColor(R, G, B)
+        PowerColour:SetCallback("OnValueChanged", function(widget, _, r, g, b) BCDM.db.profile.PowerBar.CustomColours.PrimaryPower[powerType] = {r, g, b} BCDM:UpdateBCDM() end)
+        PowerColour:SetHasAlpha(false)
+        PowerColour:SetRelativeWidth(0.19)
+        PrimaryColoursContainer:AddChild(PowerColour)
+    end
+
+    local SecondaryColoursContainer = AG:Create("InlineGroup")
+    SecondaryColoursContainer:SetTitle("Secondary Colours")
+    SecondaryColoursContainer:SetFullWidth(true)
+    SecondaryColoursContainer:SetLayout("Flow")
+    CustomColoursContainer:AddChild(SecondaryColoursContainer)
+
+    local SecondaryPowerOrder = { Enum.PowerType.Chi, Enum.PowerType.ComboPoints, Enum.PowerType.HolyPower, Enum.PowerType.ArcaneCharges, Enum.PowerType.Essence, Enum.PowerType.SoulShards, "STAGGER", Enum.PowerType.Runes, "SOUL", "MAELSTROM", }
+    for _, powerType in ipairs(SecondaryPowerOrder) do
+        local powerColour = BCDM.db.profile.PowerBar.CustomColours.SecondaryPower[powerType]
+        local PowerColour = AG:Create("ColorPicker")
+        PowerColour:SetLabel(PowerNames[powerType] or tostring(powerType))
+        local R, G, B = unpack(powerColour)
+        PowerColour:SetColor(R, G, B)
+        PowerColour:SetCallback("OnValueChanged", function(widget, _, r, g, b) BCDM.db.profile.PowerBar.CustomColours.SecondaryPower[powerType] = {r, g, b} BCDM:UpdateBCDM() end)
+        PowerColour:SetHasAlpha(false)
+        PowerColour:SetRelativeWidth(0.19)
+        SecondaryColoursContainer:AddChild(PowerColour)
+    end
+
+    local ResetPowerColoursButton = AG:Create("Button")
+    ResetPowerColoursButton:SetText("Reset Power Colours")
+    ResetPowerColoursButton:SetRelativeWidth(1)
+    ResetPowerColoursButton:SetCallback("OnClick", function()
+        BCDM.db.profile.PowerBar.CustomColours.Power = BCDM:CopyTable(DefaultColours.Power)
+        BCDM:UpdateBCDM()
+    end)
+    CustomColoursContainer:AddChild(ResetPowerColoursButton)
+
     return ScrollFrame
 end
 
@@ -198,14 +301,14 @@ local function DrawCooldownSettings(parentContainer, cooldownViewer)
     local Viewer_AnchorTo = AG:Create("Dropdown")
     Viewer_AnchorTo:SetLabel("Anchor To")
     Viewer_AnchorTo:SetList(Anchors[1], Anchors[2])
-    Viewer_AnchorTo:SetValue(CooldownViewerDB.Anchors[3])
+    Viewer_AnchorTo:SetValue(isEssential and CooldownViewerDB.Anchors[2] or CooldownViewerDB.Anchors[3])
     Viewer_AnchorTo:SetRelativeWidth(isEssential and 0.5 or 0.33)
     Viewer_AnchorTo:SetCallback("OnValueChanged", function(_, _, value) CooldownViewerDB.Anchors[3] = value BCDM:UpdateCooldownViewer(cooldownViewer) end)
     LayoutContainer:AddChild(Viewer_AnchorTo)
 
     local Viewer_OffsetX = AG:Create("Slider")
     Viewer_OffsetX:SetLabel("Offset X")
-    Viewer_OffsetX:SetValue(CooldownViewerDB.Anchors[4])
+    Viewer_OffsetX:SetValue(isEssential and CooldownViewerDB.Anchors[3] or CooldownViewerDB.Anchors[4])
     Viewer_OffsetX:SetSliderValues(-2000, 2000, 1)
     Viewer_OffsetX:SetRelativeWidth(0.25)
     Viewer_OffsetX:SetCallback("OnValueChanged", function(_, _, value) CooldownViewerDB.Anchors[4] = value BCDM:UpdateCooldownViewer(cooldownViewer) end)
@@ -213,7 +316,7 @@ local function DrawCooldownSettings(parentContainer, cooldownViewer)
 
     local Viewer_OffsetY = AG:Create("Slider")
     Viewer_OffsetY:SetLabel("Offset Y")
-    Viewer_OffsetY:SetValue(CooldownViewerDB.Anchors[5])
+    Viewer_OffsetY:SetValue(isEssential and CooldownViewerDB.Anchors[4] or CooldownViewerDB.Anchors[5])
     Viewer_OffsetY:SetSliderValues(-2000, 2000, 1)
     Viewer_OffsetY:SetRelativeWidth(0.25)
     Viewer_OffsetY:SetCallback("OnValueChanged", function(_, _, value) CooldownViewerDB.Anchors[5] = value BCDM:UpdateCooldownViewer(cooldownViewer) end)

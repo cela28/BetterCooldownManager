@@ -58,7 +58,7 @@ BCDM.Defaults = {
                 ColourByPower = false
             },
             CustomColours = {
-                Power = {
+                PrimaryPower = {
                     [0] = {0, 0, 1},            -- Mana
                     [1] = {1, 0, 0},            -- Rage
                     [2] = {1, 0.5, 0.25},       -- Focus
@@ -70,6 +70,18 @@ BCDM.Defaults = {
                     [17] = {0.79, 0.26, 0.99},  -- Fury
                     [18] = {1, 0.61, 0}         -- Pain
                 },
+                SecondaryPower = {
+                    [Enum.PowerType.Chi]           = {0.00, 1.00, 0.59 },
+                    [Enum.PowerType.ComboPoints]   = {1.00, 0.96, 0.41 },
+                    [Enum.PowerType.HolyPower]     = {0.95, 0.90, 0.60 },
+                    [Enum.PowerType.ArcaneCharges] = {0.10, 0.10, 0.98},
+                    [Enum.PowerType.Essence]       = { 0.20, 0.58, 0.50 },
+                    [Enum.PowerType.SoulShards]    = { 0.58, 0.51, 0.79 },
+                    STAGGER                        = { 0.00, 1.00, 0.59 },
+                    [Enum.PowerType.Runes]         = { 0.77, 0.12, 0.23 },
+                    SOUL                           = { 0.29, 0.42, 1.00},
+                    MAELSTROM                      = { 0.25, 0.50, 0.80},
+                }
             }
         }
     }

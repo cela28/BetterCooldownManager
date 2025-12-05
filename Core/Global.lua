@@ -124,3 +124,16 @@ function BCDM:CreatePrompt(title, text, onAccept, onCancel, acceptText, cancelTe
     end
     return promptDialog
 end
+
+function BCDM:CopyTable(defaultTable)
+    if type(defaultTable) ~= "table" then return defaultTable end
+    local newTable = {}
+    for k, v in pairs(defaultTable) do
+        if type(v) == "table" then
+            newTable[k] = BCDM:CopyTable(v)
+        else
+            newTable[k] = v
+        end
+    end
+    return newTable
+end
