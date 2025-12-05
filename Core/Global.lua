@@ -3,6 +3,8 @@ local _, BCDM = ...
 BCDM.LSM = LibStub("LibSharedMedia-3.0")
 BCDM.InfoButton = "|A:glueannouncementpopup-icon-info:16:16|a "
 
+BCDMG = BCDMG or {}
+
 BCDM.AddOnName = C_AddOns.GetAddOnMetadata("BetterCooldownManager", "Title")
 
 BCDM.Icon = "Interface\\AddOns\\BetterCooldownManager\\Media\\Logo.png"
@@ -81,9 +83,44 @@ end
 
 function BCDM:ResolveMedia()
     local LSM = BCDM.LSM
-    local GeneralDB = BCDM.db.global.General
+    local GeneralDB = BCDM.db.profile.General
+    local PowerBarDB = BCDM.db.profile.PowerBar
     BCDM.Media = BCDM.Media or {}
     BCDM.Media.Font = LSM:Fetch("font", GeneralDB.Font) or STANDARD_TEXT_FONT
-    BCDM.Media.PowerBarFGTexture = LSM:Fetch("statusbar", BCDM.db.global.PowerBar.FGTexture) or "Interface\\RaidFrame\\Raid-Bar-Hp-Fill"
-    BCDM.Media.PowerBarBGTexture = LSM:Fetch("statusbar", BCDM.db.global.PowerBar.BGTexture) or "Interface\\Buttons\\WHITE8X8"
+    BCDM.Media.FGTexture = LSM:Fetch("statusbar", PowerBarDB.FGTexture) or "Interface\\Buttons\\WHITE8X8"
+    BCDM.Media.BGTexture = LSM:Fetch("statusbar", PowerBarDB.BGTexture) or "Interface\\RaidFrame\\Raid-Bar-Hp-Fill"
+end
+
+function BCDM:UpdateBCDM()
+    BCDM:UpdatePowerBar()
+    BCDM:RefreshAllViewers()
+end
+
+function BCDM:CreatePrompt(title, text, onAccept, onCancel, acceptText, cancelText)
+    StaticPopupDialogs["BCDM_PROMPT_DIALOG"] = {
+        text = text or "",
+        button1 = acceptText or ACCEPT,
+        button2 = cancelText or CANCEL,
+        OnAccept = function(self, data)
+            if data and data.onAccept then
+                data.onAccept()
+            end
+        end,
+        OnCancel = function(self, data)
+            if data and data.onCancel then
+                data.onCancel()
+            end
+        end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        preferredIndex = 3,
+        showAlert = true,
+    }
+    local promptDialog = StaticPopup_Show("BCDM_PROMPT_DIALOG", title, text)
+    if promptDialog then
+        promptDialog.data = { onAccept = onAccept, onCancel = onCancel }
+        promptDialog:SetFrameStrata("TOOLTIP")
+    end
+    return promptDialog
 end

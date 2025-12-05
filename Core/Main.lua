@@ -4,10 +4,11 @@ local AddOn = LibStub("AceAddon-3.0"):NewAddon("BetterCooldownManager")
 function AddOn:OnInitialize()
     BCDM.db = LibStub("AceDB-3.0"):New("BetterCDMDB", BCDM.Defaults, true)
     for key, value in pairs(BCDM.Defaults) do
-        if BCDM.db.global[key] == nil then
-            BCDM.db.global[key] = value
+        if BCDM.db.profile[key] == nil then
+            BCDM.db.profile[key] = value
         end
     end
+    if BCDM.db.profile.UseGlobalProfile then BCDM.db:SetProfile(BCDM.db.profile.GlobalProfile or "Default") end
 end
 
 function AddOn:OnEnable()

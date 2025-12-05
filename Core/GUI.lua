@@ -43,8 +43,18 @@ local function CreateInfoTag(Description)
     return InfoDesc
 end
 
+local function DeepDisable(widget, disabled, skipWidget)
+    if widget == skipWidget then return end
+    if widget.SetDisabled then widget:SetDisabled(disabled) end
+    if widget.children then
+        for _, child in ipairs(widget.children) do
+            DeepDisable(child, disabled, skipWidget)
+        end
+    end
+end
+
 local function DrawGeneralSettings(parentContainer)
-    local CooldownManagerDB = BCDM.db.global
+    local CooldownManagerDB = BCDM.db.profile
     local GeneralDB = CooldownManagerDB.General
 
     local ScrollFrame = AG:Create("ScrollFrame")
@@ -152,7 +162,7 @@ local function DrawGeneralSettings(parentContainer)
 end
 
 local function DrawCooldownSettings(parentContainer, cooldownViewer)
-    local CooldownManagerDB = BCDM.db.global
+    local CooldownManagerDB = BCDM.db.profile
     local CooldownViewerDB = CooldownManagerDB[BCDM.CooldownViewerToDB[cooldownViewer]]
     local isEssential = (cooldownViewer == "EssentialCooldownViewer")
 
@@ -282,7 +292,7 @@ local function DrawCooldownSettings(parentContainer, cooldownViewer)
 end
 
 local function DrawPowerBarSettings(parentContainer)
-    local PowerBarDB = BCDM.db.global.PowerBar
+    local PowerBarDB = BCDM.db.profile.PowerBar
 
     local ScrollFrame = AG:Create("ScrollFrame")
     ScrollFrame:SetLayout("Flow")
@@ -299,32 +309,40 @@ local function DrawPowerBarSettings(parentContainer)
     local ForegroundTextureDropdown = AG:Create("LSM30_Statusbar")
     ForegroundTextureDropdown:SetList(LSM:HashTable("statusbar"))
     ForegroundTextureDropdown:SetLabel("Foreground Texture")
-    ForegroundTextureDropdown:SetValue(PowerBarDB.PowerBarFGTexture)
+    ForegroundTextureDropdown:SetValue(PowerBarDB.FGTexture)
     ForegroundTextureDropdown:SetRelativeWidth(0.5)
-    ForegroundTextureDropdown:SetCallback("OnValueChanged", function(widget, _, value) widget:SetValue(value) PowerBarDB.PowerBarFGTexture = value BCDM:UpdatePowerBar() end)
+    ForegroundTextureDropdown:SetCallback("OnValueChanged", function(widget, _, value) widget:SetValue(value) PowerBarDB.FGTexture = value BCDM:UpdatePowerBar() end)
     TextureColourContainer:AddChild(ForegroundTextureDropdown)
-
-    local FGColour = AG:Create("ColorPicker")
-    FGColour:SetLabel("Foreground Colour")
-    FGColour:SetColor(unpack(PowerBarDB.FGColour))
-    FGColour:SetRelativeWidth(0.5)
-    FGColour:SetCallback("OnValueChanged", function(_, _, r, g, b, a) PowerBarDB.FGColour = {r, g, b, a} BCDM:UpdatePowerBar() end)
-    TextureColourContainer:AddChild(FGColour)
 
     local BackgroundTextureDropdown = AG:Create("LSM30_Statusbar")
     BackgroundTextureDropdown:SetList(LSM:HashTable("statusbar"))
     BackgroundTextureDropdown:SetLabel("Background Texture")
-    BackgroundTextureDropdown:SetValue(PowerBarDB.PowerBarBGTexture)
+    BackgroundTextureDropdown:SetValue(PowerBarDB.BGTexture)
     BackgroundTextureDropdown:SetRelativeWidth(0.5)
-    BackgroundTextureDropdown:SetCallback("OnValueChanged", function(widget, _, value) widget:SetValue(value) PowerBarDB.PowerBarBGTexture = value BCDM:UpdatePowerBar() end)
+    BackgroundTextureDropdown:SetCallback("OnValueChanged", function(widget, _, value) widget:SetValue(value) PowerBarDB.BGTexture = value BCDM:UpdatePowerBar() end)
     TextureColourContainer:AddChild(BackgroundTextureDropdown)
+
+    FGColour = AG:Create("ColorPicker")
+    FGColour:SetLabel("Foreground Colour")
+    FGColour:SetColor(unpack(PowerBarDB.FGColour))
+    FGColour:SetRelativeWidth(0.33)
+    FGColour:SetCallback("OnValueChanged", function(_, _, r, g, b, a) PowerBarDB.FGColour = {r, g, b, a} BCDM:UpdatePowerBar() end)
+    FGColour:SetDisabled(PowerBarDB.ColourByPower)
+    TextureColourContainer:AddChild(FGColour)
 
     local BGColour = AG:Create("ColorPicker")
     BGColour:SetLabel("Background Colour")
     BGColour:SetColor(unpack(PowerBarDB.BGColour))
-    BGColour:SetRelativeWidth(0.5)
+    BGColour:SetRelativeWidth(0.33)
     BGColour:SetCallback("OnValueChanged", function(_, _, r, g, b,  a) PowerBarDB.BGColour = {r, g, b, a} BCDM:UpdatePowerBar() end)
     TextureColourContainer:AddChild(BGColour)
+
+    local ColourPowerBarByPower = AG:Create("CheckBox")
+    ColourPowerBarByPower:SetLabel("Colour by Type")
+    ColourPowerBarByPower:SetValue(PowerBarDB.ColourByPower)
+    ColourPowerBarByPower:SetRelativeWidth(0.33)
+    ColourPowerBarByPower:SetCallback("OnValueChanged", function(_, _, value) PowerBarDB.ColourByPower = value BCDM:UpdatePowerBar() FGColour:SetDisabled(value) end)
+    TextureColourContainer:AddChild(ColourPowerBarByPower)
 
     local LayoutContainer = AG:Create("InlineGroup")
     LayoutContainer:SetTitle("Layout Settings")
@@ -390,7 +408,7 @@ local function DrawPowerBarSettings(parentContainer)
     Text_AnchorFrom:SetLabel("Anchor From")
     Text_AnchorFrom:SetList(Anchors[1], Anchors[2])
     Text_AnchorFrom:SetValue(PowerBarDB.Text.Anchors[1])
-    Text_AnchorFrom:SetRelativeWidth(0.33)
+    Text_AnchorFrom:SetRelativeWidth(0.5)
     Text_AnchorFrom:SetCallback("OnValueChanged", function(_, _, value) PowerBarDB.Text.Anchors[1] = value BCDM:UpdatePowerBar() end)
     TextContainer:AddChild(Text_AnchorFrom)
 
@@ -398,16 +416,24 @@ local function DrawPowerBarSettings(parentContainer)
     Text_AnchorTo:SetLabel("Anchor To")
     Text_AnchorTo:SetList(Anchors[1], Anchors[2])
     Text_AnchorTo:SetValue(PowerBarDB.Text.Anchors[2])
-    Text_AnchorTo:SetRelativeWidth(0.33)
+    Text_AnchorTo:SetRelativeWidth(0.5)
     Text_AnchorTo:SetCallback("OnValueChanged", function(_, _, value) PowerBarDB.Text.Anchors[2] = value BCDM:UpdatePowerBar() end)
     TextContainer:AddChild(Text_AnchorTo)
 
-    local Text_Colour = AG:Create("ColorPicker")
+    Text_Colour = AG:Create("ColorPicker")
     Text_Colour:SetLabel("Font Colour")
     Text_Colour:SetColor(unpack(PowerBarDB.Text.Colour))
-    Text_Colour:SetRelativeWidth(0.33)
+    Text_Colour:SetRelativeWidth(0.5)
     Text_Colour:SetCallback("OnValueChanged", function(_, _, r, g, b) PowerBarDB.Text.Colour = {r, g, b} BCDM:UpdatePowerBar() end)
+    Text_Colour:SetDisabled(PowerBarDB.Text.ColourByPower)
     TextContainer:AddChild(Text_Colour)
+
+    local ColourPowerTextByPower = AG:Create("CheckBox")
+    ColourPowerTextByPower:SetLabel("Colour by Type")
+    ColourPowerTextByPower:SetValue(PowerBarDB.Text.ColourByPower)
+    ColourPowerTextByPower:SetRelativeWidth(0.5)
+    ColourPowerTextByPower:SetCallback("OnValueChanged", function(_, _, value) PowerBarDB.Text.ColourByPower = value BCDM:UpdatePowerBar() Text_Colour:SetDisabled(value) end)
+    TextContainer:AddChild(ColourPowerTextByPower)
 
     local Text_OffsetX = AG:Create("Slider")
     Text_OffsetX:SetLabel("Offset X")
@@ -434,6 +460,164 @@ local function DrawPowerBarSettings(parentContainer)
     TextContainer:AddChild(Text_FontSize)
 
     return ScrollFrame
+end
+
+local function DrawProfileSettings(GUIContainer)
+    local profileKeys = {}
+
+    local ScrollFrame = AG:Create("ScrollFrame")
+    ScrollFrame:SetLayout("Flow")
+    ScrollFrame:SetFullWidth(true)
+    ScrollFrame:SetFullHeight(true)
+    GUIContainer:AddChild(ScrollFrame)
+
+    local ProfileContainer = AG:Create("InlineGroup")
+    ProfileContainer:SetTitle("Profile Management")
+    ProfileContainer:SetFullWidth(true)
+    ProfileContainer:SetLayout("Flow")
+    ScrollFrame:AddChild(ProfileContainer)
+
+    local ActiveProfileHeading = AG:Create("Heading")
+    ActiveProfileHeading:SetFullWidth(true)
+    ProfileContainer:AddChild(ActiveProfileHeading)
+
+    local function RefreshProfiles()
+        wipe(profileKeys)
+        local tmp = {}
+        for _, name in ipairs(BCDM.db:GetProfiles(tmp, true)) do profileKeys[name] = name end
+        local profilesToDelete = {}
+        for k, v in pairs(profileKeys) do profilesToDelete[k] = v end
+        profilesToDelete[BCDM.db:GetCurrentProfile()] = nil
+        SelectProfileDropdown:SetList(profileKeys)
+        CopyFromProfileDropdown:SetList(profileKeys)
+        DeleteProfileDropdown:SetList(profilesToDelete)
+        SelectProfileDropdown:SetValue(BCDM.db:GetCurrentProfile())
+        CopyFromProfileDropdown:SetValue(nil)
+        DeleteProfileDropdown:SetValue(nil)
+        ResetProfileButton:SetText("Reset |cFF8080FF" .. BCDM.db:GetCurrentProfile() .. "|r Profile")
+        local isUsingGlobal = BCDM.db.global.UseGlobalProfile
+        ActiveProfileHeading:SetText( "Active Profile: |cFFFFFFFF" .. BCDM.db:GetCurrentProfile() .. (isUsingGlobal and " (|cFFFFCC00Global|r)" or "") .. "|r" )
+    end
+
+    BCDMG.RefreshProfiles = RefreshProfiles -- Exposed for Share.lua
+
+    SelectProfileDropdown = AG:Create("Dropdown")
+    SelectProfileDropdown:SetLabel("Select...")
+    SelectProfileDropdown:SetRelativeWidth(0.25)
+    SelectProfileDropdown:SetCallback("OnValueChanged", function(_, _, value) BCDM.db:SetProfile(value) BCDM:UpdateBCDM() RefreshProfiles() end)
+    ProfileContainer:AddChild(SelectProfileDropdown)
+
+    CopyFromProfileDropdown = AG:Create("Dropdown")
+    CopyFromProfileDropdown:SetLabel("Copy From...")
+    CopyFromProfileDropdown:SetRelativeWidth(0.25)
+    CopyFromProfileDropdown:SetCallback("OnValueChanged", function(_, _, value) BCDM:CreatePrompt("Copy Profile", "Are you sure you want to copy from |cFF8080FF" .. value .. "|r?\nThis will |cFFFF4040overwrite|r your current profile settings.", function() BCDM.db:CopyProfile(value) BCDM:UpdateBCDM() RefreshProfiles() end) end)
+    ProfileContainer:AddChild(CopyFromProfileDropdown)
+
+    DeleteProfileDropdown = AG:Create("Dropdown")
+    DeleteProfileDropdown:SetLabel("Delete...")
+    DeleteProfileDropdown:SetRelativeWidth(0.25)
+    DeleteProfileDropdown:SetCallback("OnValueChanged", function(_, _, value) if value ~= BCDM.db:GetCurrentProfile() then BCDM:CreatePrompt("Delete Profile", "Are you sure you want to delete |cFF8080FF" .. value .. "|r?", function() BCDM.db:DeleteProfile(value) BCDM:UpdateBCDM() RefreshProfiles() end) end end)
+    ProfileContainer:AddChild(DeleteProfileDropdown)
+
+    ResetProfileButton = AG:Create("Button")
+    ResetProfileButton:SetText("Reset |cFF8080FF" .. BCDM.db:GetCurrentProfile() .. "|r Profile")
+    ResetProfileButton:SetRelativeWidth(0.25)
+    ResetProfileButton:SetCallback("OnClick", function() BCDM.db:ResetProfile() BCDM:ResolveMedia() BCDM:UpdateBCDM() RefreshProfiles() end)
+    ProfileContainer:AddChild(ResetProfileButton)
+
+    local CreateProfileEditBox = AG:Create("EditBox")
+    CreateProfileEditBox:SetLabel("Profile Name:")
+    CreateProfileEditBox:SetText("")
+    CreateProfileEditBox:SetRelativeWidth(0.5)
+    CreateProfileEditBox:DisableButton(true)
+    CreateProfileEditBox:SetCallback("OnEnterPressed", function() CreateProfileEditBox:ClearFocus() end)
+    ProfileContainer:AddChild(CreateProfileEditBox)
+
+    local CreateProfileButton = AG:Create("Button")
+    CreateProfileButton:SetText("Create Profile")
+    CreateProfileButton:SetRelativeWidth(0.5)
+    CreateProfileButton:SetCallback("OnClick", function() local profileName = strtrim(CreateProfileEditBox:GetText() or "") if profileName ~= "" then BCDM.db:SetProfile(profileName) BCDM:UpdateBCDM() RefreshProfiles() CreateProfileEditBox:SetText("") end end)
+    ProfileContainer:AddChild(CreateProfileButton)
+
+    local GlobalProfileHeading = AG:Create("Heading")
+    GlobalProfileHeading:SetText("Global Profile Settings")
+    GlobalProfileHeading:SetFullWidth(true)
+    ProfileContainer:AddChild(GlobalProfileHeading)
+
+    local GlobalProfileInfoTag = CreateInfoTag("If |cFF8080FFUse Global Profile Settings|r is enabled, the profile selected below will be used as your active profile.\nThis is useful if you want to use the same profile across multiple characters.")
+    GlobalProfileInfoTag:SetFullWidth(true)
+    ProfileContainer:AddChild(GlobalProfileInfoTag)
+
+    UseGlobalProfileToggle = AG:Create("CheckBox")
+    UseGlobalProfileToggle:SetLabel("Use Global Profile Settings")
+    UseGlobalProfileToggle:SetValue(BCDM.db.global.UseGlobalProfile)
+    UseGlobalProfileToggle:SetRelativeWidth(0.5)
+    UseGlobalProfileToggle:SetCallback("OnValueChanged", function(_, _, value) BCDM.db.global.UseGlobalProfile = value if value and BCDM.db.global.GlobalProfile and BCDM.db.global.GlobalProfile ~= "" then BCDM.db:SetProfile(BCDM.db.global.GlobalProfile) UIParent:SetScale(BCDM.db.profile.General.UIScale or 1) for unit in pairs(UnitToFrameName) do if unit == "boss" then BCDM:UpdateAllBossFrames() else BCDM:UpdateUnitFrame(unit) end  end end GlobalProfileDropdown:SetDisabled(not value) for _, child in ipairs(ProfileContainer.children) do if child ~= UseGlobalProfileToggle and child ~= GlobalProfileDropdown then DeepDisable(child, value) end end RefreshProfiles() end)
+    ProfileContainer:AddChild(UseGlobalProfileToggle)
+
+    RefreshProfiles()
+
+    GlobalProfileDropdown = AG:Create("Dropdown")
+    GlobalProfileDropdown:SetLabel("Global Profile...")
+    GlobalProfileDropdown:SetRelativeWidth(0.5)
+    GlobalProfileDropdown:SetList(profileKeys)
+    GlobalProfileDropdown:SetValue(BCDM.db.global.GlobalProfile)
+    GlobalProfileDropdown:SetCallback("OnValueChanged", function(_, _, value) BCDM.db:SetProfile(value) BCDM.db.global.GlobalProfile = value BCDM:UpdateBCDM() RefreshProfiles() end)
+    ProfileContainer:AddChild(GlobalProfileDropdown)
+
+    local SharingContainer = AG:Create("InlineGroup")
+    SharingContainer:SetTitle("Profile Sharing")
+    SharingContainer:SetFullWidth(true)
+    SharingContainer:SetLayout("Flow")
+    ScrollFrame:AddChild(SharingContainer)
+
+    local ExportingHeading = AG:Create("Heading")
+    ExportingHeading:SetText("Exporting")
+    ExportingHeading:SetFullWidth(true)
+    SharingContainer:AddChild(ExportingHeading)
+
+    local ExportingImportingDesc = CreateInfoTag("You can export your profile by pressing |cFF8080FFExport Profile|r button below & share the string with other " .. BCDM.AddOnName .. " users.")
+    SharingContainer:AddChild(ExportingImportingDesc)
+
+    local ExportingEditBox = AG:Create("EditBox")
+    ExportingEditBox:SetLabel("Export String...")
+    ExportingEditBox:SetText("")
+    ExportingEditBox:SetFullWidth(true)
+    ExportingEditBox:DisableButton(true)
+    ExportingEditBox:SetCallback("OnEnterPressed", function() ExportingEditBox:ClearFocus() end)
+    SharingContainer:AddChild(ExportingEditBox)
+
+    local ExportProfileButton = AG:Create("Button")
+    ExportProfileButton:SetText("Export Profile")
+    ExportProfileButton:SetFullWidth(true)
+    ExportProfileButton:SetCallback("OnClick", function() ExportingEditBox:SetText(BCDM:ExportSavedVariables()) ExportingEditBox:HighlightText() ExportingEditBox:SetFocus() end)
+    SharingContainer:AddChild(ExportProfileButton)
+
+    local ImportingHeading = AG:Create("Heading")
+    ImportingHeading:SetText("Importing")
+    ImportingHeading:SetFullWidth(true)
+    SharingContainer:AddChild(ImportingHeading)
+
+    local ImportingDesc = CreateInfoTag("If you have an exported string, paste it in the |cFF8080FFImport String|r box below & press |cFF8080FFImport Profile|r.")
+    SharingContainer:AddChild(ImportingDesc)
+
+    local ImportingEditBox = AG:Create("EditBox")
+    ImportingEditBox:SetLabel("Import String...")
+    ImportingEditBox:SetText("")
+    ImportingEditBox:SetFullWidth(true)
+    ImportingEditBox:DisableButton(true)
+    ImportingEditBox:SetCallback("OnEnterPressed", function() ImportingEditBox:ClearFocus() end)
+    SharingContainer:AddChild(ImportingEditBox)
+
+    local ImportProfileButton = AG:Create("Button")
+    ImportProfileButton:SetText("Import Profile")
+    ImportProfileButton:SetFullWidth(true)
+    ImportProfileButton:SetCallback("OnClick", function() if ImportingEditBox:GetText() ~= "" then BCDM:ImportSavedVariables(ImportingEditBox:GetText()) ImportingEditBox:SetText("") end end)
+    SharingContainer:AddChild(ImportProfileButton)
+    GlobalProfileDropdown:SetDisabled(not BCDM.db.global.UseGlobalProfile)
+    if BCDM.db.global.UseGlobalProfile then for _, child in ipairs(ProfileContainer.children) do if child ~= UseGlobalProfileToggle and child ~= GlobalProfileDropdown then DeepDisable(child, true) end end end
+
+    ScrollFrame:DoLayout()
 end
 
 function BCDM:CreateGUI()
@@ -468,6 +652,8 @@ function BCDM:CreateGUI()
             DrawCooldownSettings(Wrapper, "BuffIconCooldownViewer")
         elseif MainGroup == "PowerBar" then
             DrawPowerBarSettings(Wrapper)
+        elseif MainGroup == "Profiles" then
+            DrawProfileSettings(Wrapper)
         end
     end
 
@@ -479,6 +665,7 @@ function BCDM:CreateGUI()
         { text = "Utility", value = "Utility"},
         { text = "Buffs", value = "Buffs"},
         { text = "Power Bar", value = "PowerBar"},
+        { text = "Profiles", value = "Profiles"},
     })
     GUIContainerTabGroup:SetCallback("OnGroupSelected", SelectedGroup)
     GUIContainerTabGroup:SelectTab("General")

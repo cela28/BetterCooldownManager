@@ -35,7 +35,7 @@ local function StripTextures(textureToStrip)
 end
 
 local function SizeIconsInCooldownViewer(viewerName)
-    local CooldownManagerDB = BCDM.db.global
+    local CooldownManagerDB = BCDM.db.profile
     local CooldownViewerDB = CooldownManagerDB[CooldownViewerToDB[viewerName]]
     local IconSize = CooldownViewerDB.IconSize
     if not viewerName then return end
@@ -58,7 +58,7 @@ local function SizeIconsInCooldownViewer(viewerName)
 end
 
 local function AdjustChargeCount(cooldownViewer)
-    local CooldownManagerDB = BCDM.db.global
+    local CooldownManagerDB = BCDM.db.profile
     local GeneralDB = CooldownManagerDB.General
     local CooldownViewerDB = CooldownManagerDB[CooldownViewerToDB[cooldownViewer]]
     for _, child in ipairs({ _G[cooldownViewer]:GetChildren() }) do
@@ -84,7 +84,7 @@ local function AdjustChargeCount(cooldownViewer)
 end
 
 local function UpdateIconZoom()
-    local CooldownManagerDB = BCDM.db.global
+    local CooldownManagerDB = BCDM.db.profile
     local GeneralDB = CooldownManagerDB.General
     for _, cooldownViewer in ipairs(CooldownManagerViewers) do
         for _, viewerChild in ipairs({_G[cooldownViewer]:GetChildren()}) do
@@ -96,7 +96,7 @@ local function UpdateIconZoom()
 end
 
 local function SkinCooldownManager()
-    local CooldownManagerDB = BCDM.db.global
+    local CooldownManagerDB = BCDM.db.profile
     local GeneralDB = CooldownManagerDB.General
     C_CVar.SetCVar("cooldownViewerEnabled", 1)
     SizeIconsInCooldownViewer("EssentialCooldownViewer")
@@ -146,14 +146,13 @@ local function PositionCooldownViewers()
     local EssentialCooldownViewer = _G["EssentialCooldownViewer"]
     local UtilityCooldownViewer = _G["UtilityCooldownViewer"]
     local BuffIconCooldownViewer = _G["BuffIconCooldownViewer"]
-    local CooldownManagerDB = BCDM.db.global
+    local CooldownManagerDB = BCDM.db.profile
     local EssentialDB = CooldownManagerDB.Essential
     local UtilityDB = CooldownManagerDB.Utility
     local BuffsDB = CooldownManagerDB.Buffs
     if EssentialCooldownViewer then
         EssentialCooldownViewer:ClearAllPoints()
-        local anchorParent = EssentialDB.Anchors[2] or "UIParent"
-        EssentialCooldownViewer:SetPoint(EssentialDB.Anchors[1], _G[anchorParent], EssentialDB.Anchors[3], EssentialDB.Anchors[4], EssentialDB.Anchors[5])
+        EssentialCooldownViewer:SetPoint(EssentialDB.Anchors[1], UIParent, EssentialDB.Anchors[3], EssentialDB.Anchors[4], EssentialDB.Anchors[5])
         NudgeViewer("EssentialCooldownViewer", -0.1, 0)
     end
     if UtilityCooldownViewer then
@@ -190,7 +189,7 @@ local function FetchCooldownTextRegion(cooldown)
 end
 
 local function ApplyCooldownText(cooldownViewer)
-    local CooldownManagerDB = BCDM.db.global
+    local CooldownManagerDB = BCDM.db.profile
     local GeneralDB = CooldownManagerDB.General
     local CooldownTextDB = GeneralDB.CooldownText
     local Viewer = _G[cooldownViewer]
