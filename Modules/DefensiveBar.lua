@@ -112,13 +112,11 @@ end
 function BCDM:SetupCustomIcons()
     wipe(BCDM.CustomFrames)
     wipe(BCDM.DefensiveBar)
-
     for spellId in pairs(DefensiveSpells) do
         local frame = CreateCustomIcon(spellId)
         BCDM.CustomFrames[spellId] = frame
         table.insert(BCDM.DefensiveBar, frame)
     end
-
     LayoutCustomIcons()
 end
 
@@ -129,17 +127,13 @@ function BCDM:ResetCustomIcons()
         frame:SetParent(nil)
         _G["BCDM_Custom_" .. spellId] = nil
     end
-
     BCDM.CustomFrames = {}
     wipe(BCDM.DefensiveBar)
-
-    -- Recreate based on the NEW DefensiveSpells list
     for spellId in pairs(DefensiveSpells) do
         local frame = CreateCustomIcon(spellId)
         BCDM.CustomFrames[spellId] = frame
         table.insert(BCDM.DefensiveBar, frame)
     end
-
     LayoutCustomIcons()
 end
 
