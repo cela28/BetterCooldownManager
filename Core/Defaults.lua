@@ -96,6 +96,17 @@ BCDM.Defaults = {
                 Anchors = {"BOTTOMRIGHT", "BOTTOMRIGHT", 0, 3}
             },
         },
+        Defensive = {
+            IconSize = {36, 36},
+            Anchors = {"BOTTOMRIGHT", "UUF_Player", "TOPRIGHT", 0, 1},
+            GrowthDirection = "LEFT",
+            Spacing = 1,
+            Count = {
+                FontSize = 12,
+                Colour = {1, 1, 1},
+                Anchors = {"BOTTOMRIGHT", "BOTTOMRIGHT", 0, 3}
+            },
+        },
         PowerBar = {
             Height = 13,
             FGTexture = "Better Blizzard",

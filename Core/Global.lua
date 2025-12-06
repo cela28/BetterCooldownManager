@@ -7,6 +7,8 @@ BCDMG = BCDMG or {}
 
 BCDM.AddOnName = C_AddOns.GetAddOnMetadata("BetterCooldownManager", "Title")
 
+BCDM.DefensiveBar = {}
+
 BCDM.Icon = "Interface\\AddOns\\BetterCooldownManager\\Media\\Logo.png"
 
 if BCDM.LSM then BCDM.LSM:Register("statusbar", "Better Blizzard", [[Interface\AddOns\BetterCooldownManager\Media\BetterBlizzard.blp]]) end
@@ -15,6 +17,18 @@ BCDM.CooldownViewerToDB = {
     ["EssentialCooldownViewer"] = "Essential",
     ["UtilityCooldownViewer"] = "Utility",
     ["BuffIconCooldownViewer"] = "Buffs",
+}
+
+BCDM.LayoutConfig = {
+    TOPLEFT     = { anchor="TOPLEFT",   offsetMultiplier=0   },
+    TOP         = { anchor="TOP",       offsetMultiplier=0   },
+    TOPRIGHT    = { anchor="TOPRIGHT",  offsetMultiplier=0   },
+    BOTTOMLEFT  = { anchor="TOPLEFT",   offsetMultiplier=1   },
+    BOTTOM      = { anchor="TOP",       offsetMultiplier=1   },
+    BOTTOMRIGHT = { anchor="TOPRIGHT",  offsetMultiplier=1   },
+    CENTER      = { anchor="CENTER",    offsetMultiplier=0.5, isCenter=true },
+    LEFT        = { anchor="LEFT",      offsetMultiplier=0.5, isCenter=true },
+    RIGHT       = { anchor="RIGHT",     offsetMultiplier=0.5, isCenter=true },
 }
 
 function BCDM:Print(MSG)

@@ -11,6 +11,16 @@ function AddOn:OnInitialize()
     if BCDM.db.global.UseGlobalProfile then BCDM.db:SetProfile(BCDM.db.global.GlobalProfile or "Default") end
 end
 
+local WaitForAddOns = CreateFrame("Frame")
+WaitForAddOns:RegisterEvent("PLAYER_LOGIN")
+WaitForAddOns:SetScript("OnEvent", function(self)
+    if C_AddOns.IsAddOnLoaded("UnhaltedUnitFrames") then
+        BCDM:SetupCustomIcons()
+    end
+    self:UnregisterEvent("PLAYER_LOGIN")
+end)
+
+
 function AddOn:OnEnable()
     BCDM:SetupSlashCommands()
     BCDM:ResolveMedia()
