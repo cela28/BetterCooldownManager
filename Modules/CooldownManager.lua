@@ -152,7 +152,7 @@ local function PositionCooldownViewers()
     local BuffsDB = CooldownManagerDB.Buffs
     if EssentialCooldownViewer then
         EssentialCooldownViewer:ClearAllPoints()
-        EssentialCooldownViewer:SetPoint(EssentialDB.Anchors[1], UIParent, EssentialDB.Anchors[3], EssentialDB.Anchors[4], EssentialDB.Anchors[5])
+        EssentialCooldownViewer:SetPoint(EssentialDB.Anchors[1], UIParent, EssentialDB.Anchors[2], EssentialDB.Anchors[3], EssentialDB.Anchors[4])
         NudgeViewer("EssentialCooldownViewer", -0.1, 0)
     end
     if UtilityCooldownViewer then
@@ -208,6 +208,20 @@ local function ApplyCooldownText(cooldownViewer)
     end
 end
 
+local function SetCooldownViewerPoints(cooldownViewer)
+    local CooldownManagerDB = BCDM.db.profile
+    local viewerDB = CooldownManagerDB[CooldownViewerToDB[cooldownViewer]]
+    local viewer = _G[cooldownViewer]
+    if not viewer then return end
+    local point, relativeTo, relativePoint, xOfs, yOfs = viewer:GetPoint(1)
+    viewer:ClearAllPoints()
+    viewer:SetPoint(point, relativeTo, relativePoint, xOfs, yOfs)
+    viewerDB.Anchors[1] = point
+    viewerDB.Anchors[2] = relativePoint
+    viewerDB.Anchors[3] = xOfs
+    viewerDB.Anchors[4] = yOfs
+end
+
 function BCDM:SetupCooldownManager()
     PositionCooldownViewers()
     for cooldownViewer, _ in pairs(IconPerCooldownViewer) do ApplyCooldownText(cooldownViewer) end
@@ -217,6 +231,7 @@ function BCDM:SetupCooldownManager()
         hooksecurefunc(_G[cooldownViewer], "RefreshLayout", function() if InCombatLockdown() then return end SkinCooldownManager() PositionCooldownViewers() SizeIconsInCooldownViewer("EssentialCooldownViewer") SizeIconsInCooldownViewer("UtilityCooldownViewer") SizeIconsInCooldownViewer("BuffIconCooldownViewer") BCDM:SetPowerBarWidth() BCDM:SetCastBarWidth() AdjustCooldownManagerStrata() end)
     end
     BCDM:SetupCentreBuffs()
+    hooksecurefunc(EssentialCooldownViewer, "OnSystemPositionChange", function(...) SetCooldownViewerPoints("EssentialCooldownViewer") end)
 end
 
 function BCDM:UpdateCooldownViewer(cooldownViewer)
