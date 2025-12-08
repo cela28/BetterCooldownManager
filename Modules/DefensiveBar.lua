@@ -39,6 +39,7 @@ local DefensiveSpells = {
         [6940] = true,          -- Blessing of Sacrifice
         [86659] = true,         -- Guardian of Ancient Kings
         [31850] = true,         -- Ardent Defender
+        [204018] = true,        -- Blessing of Spellwarding
     },
     -- Shaman
     ["SHAMAN"] = {
@@ -132,7 +133,7 @@ function CreateCustomIcon(spellId)
         if event == "SPELL_UPDATE_COOLDOWN" or event == "PLAYER_ENTERING_WORLD" or event == "SPELL_UPDATE_CHARGES" then
             local spellCharges = C_Spell.GetSpellCharges(spellId)
             if spellCharges then
-                customSpellIcon.Charges:SetText(spellCharges and spellCharges.currentCharges or "")
+                customSpellIcon.Charges:SetText(tostring(spellCharges.currentCharges))
                 customSpellIcon.Cooldown:SetCooldown(spellCharges.cooldownStartTime, spellCharges.cooldownDuration)
             else
                 local cooldownData = C_Spell.GetSpellCooldown(spellId)

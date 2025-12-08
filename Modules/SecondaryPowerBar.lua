@@ -354,8 +354,8 @@ function BCDM:SetSecondaryPowerBarWidth()
     if BCDM.SecondaryPowerBar then
         local powerBarAnchor = SecondaryPowerBarDB.Anchors[2] == "BCDM_PowerBar"
         local powerBarWidth = (powerBarAnchor and _G[SecondaryPowerBarDB.Anchors[2]]:GetWidth()) or _G[SecondaryPowerBarDB.Anchors[2]]:GetWidth() + 2
-        BCDM.SecondaryPowerBar:SetWidth(powerBarWidth)
-        BCDM.SecondaryPowerBar.StatusBar:SetWidth(powerBarWidth)
+        BCDM.SecondaryPowerBar:SetWidth(powerBarWidth - 0.1)
+        BCDM.SecondaryPowerBar.StatusBar:SetWidth(powerBarWidth - 0.1)
         UpdateSecondaryPowerTicks()
     end
 end
