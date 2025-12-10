@@ -826,70 +826,62 @@ local function DrawCustomBarSettings(parentContainer)
     local function BuildCustomSpellList()
         local profile = BCDM.db.profile.Custom.CustomSpells[playerClass][specName:upper()] or {}
         BCDMGUI.classContainer:ReleaseChildren()
-        for spellID in pairs(profile) do
+        local iconOrder = {}
+        for spellID, data in pairs(profile) do table.insert(iconOrder, { spellID = spellID, layoutIndex = data.layoutIndex or 9999 }) end
+        table.sort(iconOrder, function(a, b) return a.layoutIndex < b.layoutIndex end)
+        for _, entry in ipairs(iconOrder) do
+            local spellID = entry.spellID
+
             local SpellContainer = AG:Create("SimpleGroup")
             SpellContainer:SetFullWidth(true)
             SpellContainer:SetLayout("Flow")
             BCDMGUI.classContainer:AddChild(SpellContainer)
 
             local CustomCheckBox = AG:Create("CheckBox")
-            CustomCheckBox:SetLabel(FetchSpellInformation(spellID))
-            CustomCheckBox:SetRelativeWidth(0.5)
+            CustomCheckBox:SetLabel(FetchSpellInformation(spellID) .. " - " .. (profile[spellID].layoutIndex))
+            CustomCheckBox:SetRelativeWidth(0.25)
             CustomCheckBox:SetValue(profile[spellID].isActive)
             CustomCheckBox:SetCallback("OnValueChanged", function(_, _, value) profile[spellID].isActive = value BCDM:ResetCustomIcons() end)
             CustomCheckBox:SetCallback("OnEnter", function() GameTooltip:SetOwner(CustomCheckBox.frame, "ANCHOR_CURSOR") GameTooltip:SetSpellByID(spellID) end)
             CustomCheckBox:SetCallback("OnLeave", function() GameTooltip:Hide() end)
             SpellContainer:AddChild(CustomCheckBox)
 
-            local LayoutIndexSlider = AG:Create("Slider")
-            LayoutIndexSlider:SetLabel("Order Number")
-            LayoutIndexSlider:SetValue(profile[spellID].layoutIndex)
-            LayoutIndexSlider:SetSliderValues(1, 12, 1)
-            LayoutIndexSlider:SetRelativeWidth(0.5)
-            LayoutIndexSlider:SetCallback("OnValueChanged", function(_, _, value)  end)
-            SpellContainer:AddChild(LayoutIndexSlider)
+            local MoveUpButton = AG:Create("Button")
+            MoveUpButton:SetText("Up")
+            MoveUpButton:SetRelativeWidth(0.25)
+            MoveUpButton:SetCallback("OnClick", function() BCDM:MoveCustomSpell(spellID, -1) BuildCustomSpellList() end)
+            SpellContainer:AddChild(MoveUpButton)
+
+            local MoveDownButton = AG:Create("Button")
+            MoveDownButton:SetText("Down")
+            MoveDownButton:SetRelativeWidth(0.25)
+            MoveDownButton:SetCallback("OnClick", function() BCDM:MoveCustomSpell(spellID, 1) BuildCustomSpellList() end)
+            SpellContainer:AddChild(MoveDownButton)
+
+            local DeleteSpellButton = AG:Create("Button")
+            DeleteSpellButton:SetText("X")
+            DeleteSpellButton:SetRelativeWidth(0.25)
+            DeleteSpellButton:SetCallback("OnClick", function() BCDM:RemoveCustomSpell(spellID) BCDM:Print("Removed: " .. FetchSpellInformation(spellID)) BuildCustomSpellList() end)
+            SpellContainer:AddChild(DeleteSpellButton)
         end
+
+        ScrollFrame:DoLayout()
     end
 
-    local function GetCustomCustomList()
-        local CustomList = {}
-        local profile = BCDM.db.profile.Custom.CustomSpells[playerClass]
-        local defaults = BCDM.CustomSpells[playerClass]
-        for spellID in pairs(profile) do
-            if not defaults[spellID] then
-                CustomList[spellID] = FetchSpellInformation(spellID)
-            end
-        end
-        return CustomList
-    end
-
-    local function RefreshRemoveDropdown()
-        local list = GetCustomCustomList()
-        RemoveCustomDropdown:SetList(list)
-        RemoveCustomDropdown:SetValue(nil)
-
-        if next(list) == nil then
-            RemoveCustomDropdown:SetDisabled(true)
-        else
-            RemoveCustomDropdown:SetDisabled(false)
-        end
-    end
 
     local AddCustomEditBox = AG:Create("EditBox")
     AddCustomEditBox:SetLabel("SpellID / Spell Name")
     AddCustomEditBox:SetRelativeWidth(0.5)
-    AddCustomEditBox:SetCallback("OnEnterPressed", function() local input = AddCustomEditBox:GetText() if not input or input == "" then return end BCDM:AddCustomSpell(input) BCDM:Print("Added: " .. FetchSpellInformation(input)) RefreshRemoveDropdown() BuildCustomSpellList() AddCustomEditBox:SetText("") AddCustomEditBox:ClearFocus() end)
+    AddCustomEditBox:SetCallback("OnEnterPressed", function() local input = AddCustomEditBox:GetText() if not input or input == "" then return end BCDM:AddCustomSpell(input) BCDM:Print("Added: " .. FetchSpellInformation(input)) BuildCustomSpellList() AddCustomEditBox:SetText("") AddCustomEditBox:ClearFocus() end)
     AddCustomEditBox:SetCallback("OnEnter", function() GameTooltip:SetOwner(AddCustomEditBox.frame, "ANCHOR_CURSOR") GameTooltip:SetText("|cFF8080FFSpell Name|r will automatically be converted to its respective SpellID") end)
     AddCustomEditBox:SetCallback("OnLeave", function() GameTooltip:Hide() end)
     SupportedCustomContainer:AddChild(AddCustomEditBox)
 
-    RemoveCustomDropdown = AG:Create("Dropdown")
-    RemoveCustomDropdown:SetLabel("Remove Custom Ability")
-    RemoveCustomDropdown:SetRelativeWidth(0.5)
-    RemoveCustomDropdown:SetCallback("OnValueChanged", function(_, _, spellID) if not spellID then return end BCDM:RemoveCustomSpell(spellID) BCDM:Print("Removed: " .. FetchSpellInformation(spellID)) RefreshRemoveDropdown() BuildCustomSpellList() end)
-    SupportedCustomContainer:AddChild(RemoveCustomDropdown)
-
-    RefreshRemoveDropdown()
+    local ResetToDefaultsButton = AG:Create("Button")
+    ResetToDefaultsButton:SetText("Reset Defaults")
+    ResetToDefaultsButton:SetRelativeWidth(0.5)
+    ResetToDefaultsButton:SetCallback("OnClick", function() BCDM:ResetCustomSpells() BCDM:Print("Custom Spells reset to defaults for " .. ClassToPrettyClass[playerClass]) BuildCustomSpellList() end)
+    SupportedCustomContainer:AddChild(ResetToDefaultsButton)
 
     local classContainer = AG:Create("InlineGroup")
     classContainer:SetTitle(ClassToPrettyClass[playerClass])
@@ -899,6 +891,7 @@ local function DrawCustomBarSettings(parentContainer)
     BCDMGUI.classContainer = classContainer
 
     BuildCustomSpellList()
+
     ScrollFrame:DoLayout()
 
     return ScrollFrame

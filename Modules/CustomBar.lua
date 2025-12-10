@@ -91,12 +91,11 @@ local CustomSpells = {
         ["PROTECTION"] = {
             [1022] = { isActive = true, layoutIndex = 1 },          -- Blessing of Protection
             [642] = { isActive = true, layoutIndex = 2 },           -- Divine Shield
-            [403876] = { isActive = true, layoutIndex = 3 },        -- Divine Protection
-            [6940] = { isActive = true, layoutIndex = 4 },          -- Blessing of Sacrifice
-            [86659] = { isActive = true, layoutIndex = 5 },         -- Guardian of Ancient Kings
-            [31850] = { isActive = true, layoutIndex = 6 },         -- Ardent Defender
-            [204018] = { isActive = true, layoutIndex = 7 },        -- Blessing of Spellwarding
-            [633] = { isActive = true, layoutIndex = 8 },           -- Lay on Hands
+            [6940] = { isActive = true, layoutIndex = 3 },          -- Blessing of Sacrifice
+            [86659] = { isActive = true, layoutIndex = 4 },         -- Guardian of Ancient Kings
+            [31850] = { isActive = true, layoutIndex = 5 },         -- Ardent Defender
+            [204018] = { isActive = true, layoutIndex = 6 },        -- Blessing of Spellwarding
+            [633] = { isActive = true, layoutIndex = 7 },           -- Lay on Hands
         }
     },
     -- Shaman
@@ -364,12 +363,18 @@ function BCDM:SetupCustomIcons()
     wipe(BCDM.CustomBar)
     local _, class = UnitClass("player")
     local specName = select(2, GetSpecializationInfo(GetSpecialization()))
-
     local spellList = CooldownManagerDB.Custom.CustomSpells[class][specName:upper()] or {}
-    for spellId, spellData in pairs(spellList) do
-        if spellId and spellData.isActive then
-            local frame = CreateCustomIcon(spellId)
-            BCDM.CustomFrames[spellId] = frame
+    local iconOrder = {}
+    for spellId, data in pairs(spellList) do
+        if data.isActive then
+            table.insert(iconOrder, { spellId = spellId, layoutIndex = data.layoutIndex or 9999 })
+        end
+    end
+    table.sort(iconOrder, function(a, b) return a.layoutIndex < b.layoutIndex end)
+    for _, entry in ipairs(iconOrder) do
+        local frame = CreateCustomIcon(entry.spellId)
+        if frame then
+            BCDM.CustomFrames[entry.spellId] = frame
             table.insert(BCDM.CustomBar, frame)
         end
     end
@@ -378,7 +383,6 @@ end
 
 function BCDM:ResetCustomIcons()
     local CooldownManagerDB = BCDM.db.profile
-    -- Can we even destroy frames?
     for spellId, frame in pairs(BCDM.CustomFrames) do
         if frame then
             frame:Hide()
@@ -394,12 +398,18 @@ function BCDM:ResetCustomIcons()
     wipe(BCDM.CustomBar)
     local _, class = UnitClass("player")
     local specName = select(2, GetSpecializationInfo(GetSpecialization()))
-
     local spellList = CooldownManagerDB.Custom.CustomSpells[class][specName:upper()] or {}
-    for spellId, spellData in pairs(spellList) do
-        if spellId and spellData.isActive then
-            local frame = CreateCustomIcon(spellId)
-            BCDM.CustomFrames[spellId] = frame
+    local iconOrder = {}
+    for spellId, data in pairs(spellList) do
+        if data.isActive then
+            table.insert(iconOrder, { spellId = spellId, layoutIndex = data.layoutIndex or 9999 })
+        end
+    end
+    table.sort(iconOrder, function(a, b) return a.layoutIndex < b.layoutIndex end)
+    for _, entry in ipairs(iconOrder) do
+        local frame = CreateCustomIcon(entry.spellId)
+        if frame then
+            BCDM.CustomFrames[entry.spellId] = frame
             table.insert(BCDM.CustomBar, frame)
         end
     end
@@ -445,32 +455,60 @@ function BCDM:CopyCustomSpellsToDB()
         if not profileDB.Custom.CustomSpells[class][specName] then profileDB.Custom.CustomSpells[class][specName] = {} end
         for spellId, spellData in pairs(spellList) do
             profileDB.Custom.CustomSpells[class][specName][spellId] = spellData
+            print("Copied spell ID " .. spellId .. " to Custom Spells for " .. class .. " " .. specName)
         end
     end
 end
 
 function BCDM:AddCustomSpell(value)
-    if value == nil then return end
-    local spellId = C_Spell.GetSpellInfo(value).spellID or value
+    if not value then return end
+    local info = C_Spell.GetSpellInfo(value)
+    local spellId = info and info.spellID or value
     if not spellId then return end
     local profileDB = BCDM.db.profile
     local _, class = UnitClass("player")
-    local specName = select(2, GetSpecializationInfo(GetSpecialization()))
-    if not profileDB.Custom.CustomSpells[class] then profileDB.Custom.CustomSpells[class] = {} end
-    if not profileDB.Custom.CustomSpells[class][specName] then profileDB.Custom.CustomSpells[class][specName:upper()] = {} end
-    profileDB.Custom.CustomSpells[class][specName:upper()][spellId] = { isActive = true, layoutIndex = (#profileDB.Custom.CustomSpells[class][specName:upper()] + 1) }
+    local specName = select(2, GetSpecializationInfo(GetSpecialization())):upper()
+    profileDB.Custom.CustomSpells[class] = profileDB.Custom.CustomSpells[class] or {}
+    profileDB.Custom.CustomSpells[class][specName] = profileDB.Custom.CustomSpells[class][specName] or {}
+    local specTable = profileDB.Custom.CustomSpells[class][specName]
+    local nextIndex = #specTable + 1
+    specTable[spellId] = { isActive = true, layoutIndex = nextIndex }
     BCDM:ResetCustomIcons()
 end
 
 function BCDM:RemoveCustomSpell(value)
-    if value == nil then return end
-    local spellId = C_Spell.GetSpellInfo(value).spellID or value
+    if not value then return end
+    local info = C_Spell.GetSpellInfo(value)
+    local spellId = info and info.spellID or value
     if not spellId then return end
     local profileDB = BCDM.db.profile
     local _, class = UnitClass("player")
-    local specName = select(2, GetSpecializationInfo(GetSpecialization()))
-    if not profileDB.Custom.CustomSpells[class] then return end
-    if not profileDB.Custom.CustomSpells[class][specName:upper()] then return end
-    profileDB.Custom.CustomSpells[class][specName:upper()][spellId] = nil
+    local specName = select(2, GetSpecializationInfo(GetSpecialization())):upper()
+    local specTable = profileDB.Custom.CustomSpells[class] and profileDB.Custom.CustomSpells[class][specName]
+    if not specTable then return end
+    specTable[spellId] = nil
+    BCDM:ResetCustomIcons()
+end
+
+function BCDM:ResetCustomSpells()
+    local profileDB = BCDM.db.profile
+    local _, class = UnitClass("player")
+    local specName = select(2, GetSpecializationInfo(GetSpecialization())):upper()
+    if profileDB.Custom.CustomSpells[class] then
+        profileDB.Custom.CustomSpells[class][specName] = nil
+    end
+    BCDM:CopyCustomSpellsToDB()
+    BCDM:ResetCustomIcons()
+end
+
+function BCDM:MoveCustomSpell(spellId, value)
+    if not spellId or not value then return end
+    local profileDB = BCDM.db.profile
+    local _, class = UnitClass("player")
+    local specName = select(2, GetSpecializationInfo(GetSpecialization())):upper()
+    local specTable = profileDB.Custom.CustomSpells[class] and profileDB.Custom.CustomSpells[class][specName]
+    if not specTable or not specTable[spellId] then return end
+    if specTable[spellId].layoutIndex + value < 1 then return end
+    specTable[spellId].layoutIndex = specTable[spellId].layoutIndex + value
     BCDM:ResetCustomIcons()
 end
