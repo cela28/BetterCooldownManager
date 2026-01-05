@@ -244,15 +244,15 @@ local function ApplyCooldownText(cooldown)
     local CooldownManagerDB = BCDM.db.profile
     local GeneralDB = CooldownManagerDB.General
     local CooldownTextDB = GeneralDB.CooldownText
-    if not cooldown.customBarCooldownText then
+    if not cooldown.CustomBarCooldownText then
         for _, region in ipairs({ cooldown:GetRegions() }) do
             if region:GetObjectType() == "FontString" then
-                cooldown.customBarCooldownText = region
+                cooldown.CustomBarCooldownText = region
                 break
             end
         end
     end
-    local region = cooldown.customBarCooldownText
+    local region = cooldown.CustomBarCooldownText
     if not region then return end
     if CooldownTextDB.ScaleByIconSize then
         local iconWidth = cooldown:GetWidth()
@@ -393,7 +393,7 @@ function BCDM:SetupCustomIcons()
     wipe(BCDM.CustomBar)
     local _, class = UnitClass("player")
     local specName = select(2, GetSpecializationInfo(GetSpecialization())):gsub(" ", "")
-
+    -- Make a DB entry if it doesn't exist
     if not CooldownManagerDB.Custom then CooldownManagerDB.Custom = {} end
     if not CooldownManagerDB.Custom.CustomSpells then CooldownManagerDB.Custom.CustomSpells = {} end
     if not CooldownManagerDB.Custom.CustomSpells[class] then CooldownManagerDB.Custom.CustomSpells[class] = {} end
@@ -573,6 +573,7 @@ function BCDM:ResetCustomSpells()
     if profileDB.Custom.CustomSpells[class] then
         profileDB.Custom.CustomSpells[class][specName] = nil
     end
+    BCDM:CopyCustomSpellsToDB()
     BCDM:ResetCustomIcons()
 end
 
