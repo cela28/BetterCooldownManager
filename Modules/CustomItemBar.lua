@@ -106,6 +106,7 @@ local function CreateCustomIcon(itemId)
             if itemCount then
                 customIcon.Charges:SetText(tostring(itemCount))
                 customIcon.Cooldown:SetCooldown(startTime, durationTime)
+                IsCooldownFrameActive(self)
                 if itemCount <= 0 then
                     customIcon.Icon:SetDesaturated(true)
                     customIcon.Charges:SetText("")
@@ -115,7 +116,6 @@ local function CreateCustomIcon(itemId)
                 end
                 customIcon.Charges:SetAlphaFromBoolean(itemCount > 1, 1, 0)
             end
-            IsCooldownFrameActive(self)
         end
     end)
 
@@ -201,7 +201,6 @@ local function LayoutCustomItemBar()
     local iconSize = CustomDB.IconSize
     local iconSpacing = CustomDB.Spacing
 
-    -- Calculate and set container size first
     if #customItemBarIcons == 0 then
         BCDM.CustomItemBarContainer:SetSize(1, 1)
     else
