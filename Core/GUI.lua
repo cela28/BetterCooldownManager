@@ -1426,6 +1426,9 @@ local function CreatePowerBarSettings(parentContainer)
 
     RefreshPowerBarGUISettings()
 
+    parentContainer:DoLayout()
+    ScrollFrame:DoLayout()
+
     return ScrollFrame
 end
 
