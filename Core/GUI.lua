@@ -1822,6 +1822,8 @@ local function CreateSecondaryPowerBarSettings(parentContainer)
     toggleContainer:SetLayout("Flow")
     ScrollFrame:AddChild(toggleContainer)
 
+    CreateInformationTag(toggleContainer, "Colours are applied in the order they are displayed here. It'll always colour by |cFF8080FFpower type|r first, then by |cFF8080FFclass|r.\nFor |cFFC41E3ADeath Knights|r and |cFF00FF98Monks|r, specialization/state colours are applied last.")
+
     local enabledCheckbox = AG:Create("CheckBox")
     enabledCheckbox:SetLabel("Enable Power Bar")
     enabledCheckbox:SetValue(BCDM.db.profile.SecondaryPowerBar.Enabled)
@@ -1854,7 +1856,7 @@ local function CreateSecondaryPowerBarSettings(parentContainer)
 
     if isUnitMonk then
         local colourStaggerByStateCheckbox = AG:Create("CheckBox")
-        colourStaggerByStateCheckbox:SetLabel("Colour by Stagger Value")
+        colourStaggerByStateCheckbox:SetLabel("Colour by Stagger")
         colourStaggerByStateCheckbox:SetValue(BCDM.db.profile.SecondaryPowerBar.ColourByState)
         colourStaggerByStateCheckbox:SetCallback("OnValueChanged", function(self, _, value) BCDM.db.profile.SecondaryPowerBar.ColourByState = value BCDM:UpdateSecondaryPowerBar() RefreshSecondaryPowerBarGUISettings() end)
         colourStaggerByStateCheckbox:SetRelativeWidth(0.33)
