@@ -78,6 +78,17 @@ local function SetHooks()
     hooksecurefunc(EditModeManagerFrame, "ExitEditMode", function() if InCombatLockdown() then return end  BCDM:UpdatePowerBarWidth() end)
 end
 
+local updatePowerBarHeightEventFrame = CreateFrame("Frame")
+updatePowerBarHeightEventFrame:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
+updatePowerBarHeightEventFrame:SetScript("OnEvent", function(self, event, ...)
+    local PowerBarDB = BCDM.db.profile.PowerBar
+    local PowerBar = BCDM.PowerBar
+    if PowerBarDB.Enabled and PowerBar then
+        local hasSecondary = DetectSecondaryPower()
+        PowerBar:SetHeight(hasSecondary and PowerBarDB.Height or PowerBarDB.HeightWithoutSecondary)
+    end
+end)
+
 function BCDM:CreatePowerBar()
     local GeneralDB = BCDM.db.profile.General
     local PowerBarDB = BCDM.db.profile.PowerBar

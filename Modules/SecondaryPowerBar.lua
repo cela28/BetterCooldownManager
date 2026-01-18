@@ -498,10 +498,19 @@ local function UpdatePowerValues()
         secondaryPowerBar.Text:SetText(tostring(powerCurrent))
         secondaryPowerBar.Status:Show()
     elseif powerType == Enum.PowerType.ComboPoints then
-        secondaryPowerBar.Status:Show()
         secondaryPowerBar.Status:SetValue(0)
-        UpdateComboDisplay()
-        secondaryPowerBar.Text:SetText(tostring(UnitPower("player", Enum.PowerType.ComboPoints) or 0))
+        local isRogue = select(2, UnitClass("player")) == "ROGUE"
+        if isRogue then
+            UpdateComboDisplay()
+            secondaryPowerBar.Text:SetText(tostring(UnitPower("player", Enum.PowerType.ComboPoints) or 0))
+        else
+            powerCurrent = UnitPower("player", Enum.PowerType.ComboPoints) or 0
+            local powerMax = UnitPowerMax("player", Enum.PowerType.ComboPoints) or 0
+            secondaryPowerBar.Status:SetMinMaxValues(0, powerMax)
+            secondaryPowerBar.Status:SetValue(powerCurrent)
+            secondaryPowerBar.Text:SetText(tostring(powerCurrent))
+        end
+        secondaryPowerBar.Status:Show()
     elseif powerType == Enum.PowerType.Essence then
         -- Inspired by Sensei's Resource Bar - <https://www.curseforge.com/wow/addons/senseiclassresourcebar>
         powerCurrent = UnitPower("player", Enum.PowerType.Essence) or 0
@@ -539,6 +548,7 @@ local function UpdatePowerValues()
         UpdateRuneDisplay()
     end
 
+    secondaryPowerBar.Status:SetStatusBarColor(GetPowerBarColor())
     secondaryPowerBar:Show()
 end
 
@@ -732,6 +742,7 @@ function BCDM:UpdateSecondaryPowerBar()
     secondaryPowerBar.Status:SetValue(UnitPower("player"))
     secondaryPowerBar.Text:SetFont(BCDM.Media.Font, secondaryPowerBarDB.Text.FontSize, generalDB.Fonts.FontFlag)
     secondaryPowerBar.Text:SetTextColor(secondaryPowerBarDB.Text.Colour[1], secondaryPowerBarDB.Text.Colour[2], secondaryPowerBarDB.Text.Colour[3], 1)
+    secondaryPowerBar.Text:ClearAllPoints()
     secondaryPowerBar.Text:SetPoint(secondaryPowerBarDB.Text.Layout[1], secondaryPowerBar, secondaryPowerBarDB.Text.Layout[2], secondaryPowerBarDB.Text.Layout[3], secondaryPowerBarDB.Text.Layout[4])
     if generalDB.Fonts.Shadow.Enabled then
         secondaryPowerBar.Text:SetShadowColor(generalDB.Fonts.Shadow.Colour[1], generalDB.Fonts.Shadow.Colour[2], generalDB.Fonts.Shadow.Colour[3], generalDB.Fonts.Shadow.Colour[4])
