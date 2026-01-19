@@ -132,12 +132,18 @@ function BCDM:CreateCastBar()
     SetHooks()
 
     local CastBar = CreateFrame("Frame", "BCDM_CastBar", UIParent, "BackdropTemplate")
+    local borderSize = BCDM.db.profile.CooldownManager.General.BorderSize
 
     CastBar.Pips = {}
 
+
     CastBar:SetBackdrop(BCDM.BACKDROP)
+    if borderSize > 0 then
+        CastBar:SetBackdropBorderColor(0, 0, 0, 1)
+    else
+        CastBar:SetBackdropBorderColor(0, 0, 0, 0)
+    end
     CastBar:SetBackdropColor(CastBarDB.BackgroundColour[1], CastBarDB.BackgroundColour[2], CastBarDB.BackgroundColour[3], CastBarDB.BackgroundColour[4])
-    CastBar:SetBackdropBorderColor(0, 0, 0, 1)
     CastBar:SetSize(CastBarDB.Width, CastBarDB.Height)
     CastBar:SetPoint(CastBarDB.Layout[1], _G[CastBarDB.Layout[2]], CastBarDB.Layout[3], CastBarDB.Layout[4], CastBarDB.Layout[5])
     CastBar:SetFrameStrata("LOW")
@@ -161,17 +167,17 @@ function BCDM:CreateCastBar()
     CastBar.Status:SetValue(UnitPower("player"))
 
     if CastBarDB.Icon.Enabled == false then
-        CastBar.Status:SetPoint("TOPLEFT", CastBar, "TOPLEFT", 1, -1)
-        CastBar.Status:SetPoint("BOTTOMRIGHT", CastBar, "BOTTOMRIGHT", -1, 1)
+        CastBar.Status:SetPoint("TOPLEFT", CastBar, "TOPLEFT", borderSize, -borderSize)
+        CastBar.Status:SetPoint("BOTTOMRIGHT", CastBar, "BOTTOMRIGHT", -borderSize, borderSize)
     elseif CastBarDB.Icon.Layout == "LEFT" then
-        CastBar.Icon:SetPoint("TOPLEFT", CastBar, "TOPLEFT", 1, -1)
-        CastBar.Icon:SetPoint("BOTTOMLEFT", CastBar, "BOTTOMLEFT", 1, 1)
+        CastBar.Icon:SetPoint("TOPLEFT", CastBar, "TOPLEFT", borderSize, -borderSize)
+        CastBar.Icon:SetPoint("BOTTOMLEFT", CastBar, "BOTTOMLEFT", borderSize, borderSize)
         CastBar.Status:SetPoint("TOPLEFT", CastBar.Icon, "TOPRIGHT", 0, 0)
-        CastBar.Status:SetPoint("BOTTOMRIGHT", CastBar, "BOTTOMRIGHT", -1, 1)
+        CastBar.Status:SetPoint("BOTTOMRIGHT", CastBar, "BOTTOMRIGHT", -borderSize, borderSize)
     elseif CastBarDB.Icon.Layout == "RIGHT" then
-        CastBar.Icon:SetPoint("TOPRIGHT", CastBar, "TOPRIGHT", -1, -1)
-        CastBar.Icon:SetPoint("BOTTOMRIGHT", CastBar, "BOTTOMRIGHT", -1, 1)
-        CastBar.Status:SetPoint("TOPLEFT", CastBar, "TOPLEFT", 1, -1)
+        CastBar.Icon:SetPoint("TOPRIGHT", CastBar, "TOPRIGHT", -borderSize, -borderSize)
+        CastBar.Icon:SetPoint("BOTTOMRIGHT", CastBar, "BOTTOMRIGHT", -borderSize, borderSize)
+        CastBar.Status:SetPoint("TOPLEFT", CastBar, "TOPLEFT", borderSize, -borderSize)
         CastBar.Status:SetPoint("BOTTOMRIGHT", CastBar.Icon, "BOTTOMLEFT", 0, 0)
     end
 
@@ -233,15 +239,20 @@ function BCDM:UpdateCastBar()
     local GeneralDB = BCDM.db.profile.General
     local CastBarDB = BCDM.db.profile.CastBar
     local CastBar = BCDM.CastBar
+     local borderSize = BCDM.db.profile.CooldownManager.General.BorderSize
     if not CastBar then return end
 
     BCDM.CastBar:SetBackdropColor(CastBarDB.BackgroundColour[1], CastBarDB.BackgroundColour[2], CastBarDB.BackgroundColour[3], CastBarDB.BackgroundColour[4])
     BCDM.CastBar:SetSize(CastBarDB.Width, CastBarDB.Height)
     BCDM.CastBar:ClearAllPoints()
     BCDM.CastBar:SetPoint(CastBarDB.Layout[1], _G[CastBarDB.Layout[2]], CastBarDB.Layout[3], CastBarDB.Layout[4], CastBarDB.Layout[5])
-    BCDM.CastBar:SetBackdrop(BCDM.BACKDROP)
+    CastBar:SetBackdrop(BCDM.BACKDROP)
+    if borderSize > 0 then
+        CastBar:SetBackdropBorderColor(0, 0, 0, 1)
+    else
+        CastBar:SetBackdropBorderColor(0, 0, 0, 0)
+    end
     BCDM.CastBar:SetBackdropColor(CastBarDB.BackgroundColour[1], CastBarDB.BackgroundColour[2], CastBarDB.BackgroundColour[3], CastBarDB.BackgroundColour[4])
-    BCDM.CastBar:SetBackdropBorderColor(0, 0, 0, 1)
 
     BCDM.CastBar.Status:SetStatusBarColor(FetchCastBarColour())
     BCDM.CastBar.Status:SetStatusBarTexture(BCDM.Media.Foreground)
@@ -259,17 +270,17 @@ function BCDM:UpdateCastBar()
 
     CastBar.Icon:ClearAllPoints()
     if CastBarDB.Icon.Enabled == false then
-        CastBar.Status:SetPoint("TOPLEFT", CastBar, "TOPLEFT", 1, -1)
-        CastBar.Status:SetPoint("BOTTOMRIGHT", CastBar, "BOTTOMRIGHT", -1, 1)
+        CastBar.Status:SetPoint("TOPLEFT", CastBar, "TOPLEFT", borderSize, -borderSize)
+        CastBar.Status:SetPoint("BOTTOMRIGHT", CastBar, "BOTTOMRIGHT", -borderSize, borderSize)
     elseif CastBarDB.Icon.Layout == "LEFT" then
-        CastBar.Icon:SetPoint("TOPLEFT", CastBar, "TOPLEFT", 1, -1)
-        CastBar.Icon:SetPoint("BOTTOMLEFT", CastBar, "BOTTOMLEFT", 1, 1)
+        CastBar.Icon:SetPoint("TOPLEFT", CastBar, "TOPLEFT", borderSize, -borderSize)
+        CastBar.Icon:SetPoint("BOTTOMLEFT", CastBar, "BOTTOMLEFT", borderSize, borderSize)
         CastBar.Status:SetPoint("TOPLEFT", CastBar.Icon, "TOPRIGHT", 0, 0)
-        CastBar.Status:SetPoint("BOTTOMRIGHT", CastBar, "BOTTOMRIGHT", -1, 1)
+        CastBar.Status:SetPoint("BOTTOMRIGHT", CastBar, "BOTTOMRIGHT", -borderSize, borderSize)
     elseif CastBarDB.Icon.Layout == "RIGHT" then
-        CastBar.Icon:SetPoint("TOPRIGHT", CastBar, "TOPRIGHT", -1, -1)
-        CastBar.Icon:SetPoint("BOTTOMRIGHT", CastBar, "BOTTOMRIGHT", -1, 1)
-        CastBar.Status:SetPoint("TOPLEFT", CastBar, "TOPLEFT", 1, -1)
+        CastBar.Icon:SetPoint("TOPRIGHT", CastBar, "TOPRIGHT", -borderSize, -borderSize)
+        CastBar.Icon:SetPoint("BOTTOMRIGHT", CastBar, "BOTTOMRIGHT", -borderSize, borderSize)
+        CastBar.Status:SetPoint("TOPLEFT", CastBar, "TOPLEFT", borderSize, -borderSize)
         CastBar.Status:SetPoint("BOTTOMRIGHT", CastBar.Icon, "BOTTOMLEFT", 0, 0)
     end
 
