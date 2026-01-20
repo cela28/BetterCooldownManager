@@ -141,23 +141,30 @@ local function CreateCustomIcons(iconTable)
     local isWarlock = select(2, UnitClass("player")) == "WARLOCK"
     local pactOfGluttony = C_SpellBook.IsSpellKnown(386689)
 
-    local healthstoneToSkip = nil
+    local healthstoneBaseId = 5512
+    local healthstoneGluttonyId = 224464
+    local activeHealthstoneId = nil
     if isWarlock then
-        if pactOfGluttony then
-            healthstoneToSkip = 5512
-        else
-            healthstoneToSkip = 224464
-        end
+        activeHealthstoneId = pactOfGluttony and healthstoneGluttonyId or healthstoneBaseId
     end
 
     wipe(iconTable)
 
     if Items then
         local items = {}
+        local healthstoneIndex = nil
         for itemId, data in pairs(Items) do
-            if data.isActive and itemId ~= healthstoneToSkip then
-                table.insert(items, {id = itemId, index = data.layoutIndex})
+            local layoutIndex = data.layoutIndex or math.huge
+            if isWarlock and (itemId == healthstoneBaseId or itemId == healthstoneGluttonyId) then
+                if data.isActive then
+                    healthstoneIndex = math.min(healthstoneIndex or math.huge, layoutIndex)
+                end
+            elseif data.isActive then
+                table.insert(items, {id = itemId, index = layoutIndex})
             end
+        end
+        if isWarlock and healthstoneIndex and activeHealthstoneId then
+            table.insert(items, {id = activeHealthstoneId, index = healthstoneIndex})
         end
 
         table.sort(items, function(a, b) return a.index < b.index end)
