@@ -299,6 +299,7 @@ local function BuildDataDropdownList(dataEntries)
         end
         currentGroup = group
         local label = FetchItemSpellInformation(entry.id, entry.entryType)
+        if not label then label = "Unknown" end
         local key = entry.entryType .. ":" .. entry.id
         list[key] = label .. " [|cFF8080FF" .. entry.id .. "|r]" or ("ID " .. tostring(entry.id))
         order[#order + 1] = key
