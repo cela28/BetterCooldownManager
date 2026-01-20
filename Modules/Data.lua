@@ -303,22 +303,24 @@ function BCDM:FetchData(options)
 
     if includeSpells and DEFENSIVE_SPELLS[playerClass] and DEFENSIVE_SPELLS[playerClass][playerSpecialization] then
         for spellId, data in pairs(DEFENSIVE_SPELLS[playerClass][playerSpecialization]) do
-            dataList[#dataList + 1] = { id = spellId, data = data, entryType = "spell" }
+            dataList[#dataList + 1] = { id = spellId, data = data, entryType = "spell", groupOrder = 1 }
         end
         for racialId, data in pairs(RACIALS) do
-            dataList[#dataList + 1] = { id = racialId, data = data, entryType = "spell" }
+            dataList[#dataList + 1] = { id = racialId, data = data, entryType = "spell", groupOrder = 2 }
         end
     end
 
     if includeItems and ITEMS then
         for itemId, data in pairs(ITEMS) do
-            dataList[#dataList + 1] = { id = itemId, data = data, entryType = "item" }
+            dataList[#dataList + 1] = { id = itemId, data = data, entryType = "item", groupOrder = 3 }
         end
     end
 
     table.sort(dataList, function(a, b)
-        if a.entryType ~= b.entryType then
-            return a.entryType < b.entryType
+        local aOrder = a.groupOrder or 99
+        local bOrder = b.groupOrder or 99
+        if aOrder ~= bOrder then
+            return aOrder < bOrder
         end
         local aIndex = a.data and a.data.layoutIndex or math.huge
         local bIndex = b.data and b.data.layoutIndex or math.huge

@@ -281,11 +281,29 @@ end
 
 local function BuildDataDropdownList(dataEntries)
     local list = {}
+    local order = {}
+    local currentGroup
+    local headerCount = 0
+    local groupNames = {
+        [1] = "|cFF8080FFClass Spells|r",
+        [2] = "|cFF8080FFRacials|r",
+        [3] = "|cFF8080FFItems|r",
+    }
     for _, entry in ipairs(dataEntries) do
+        local group = entry.groupOrder or entry.entryType
+        if currentGroup and group ~= currentGroup then
+            headerCount = headerCount + 1
+            local headerKey = "header:" .. headerCount
+            list[headerKey] = "=== " .. (groupNames[group] or "Other") .. " ==="
+            order[#order + 1] = headerKey
+        end
+        currentGroup = group
         local label = FetchItemSpellInformation(entry.id, entry.entryType)
-        list[entry.entryType .. ":" .. entry.id] = label .. " [|cFF8080FF" .. entry.id .. "|r]" or ("ID " .. tostring(entry.id))
+        local key = entry.entryType .. ":" .. entry.id
+        list[key] = label .. " [|cFF8080FF" .. entry.id .. "|r]" or ("ID " .. tostring(entry.id))
+        order[#order + 1] = key
     end
-    return list
+    return list, order
 end
 
 local function ParseDataDropdownValue(value)
