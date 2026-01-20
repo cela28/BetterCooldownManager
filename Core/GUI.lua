@@ -283,7 +283,7 @@ local function BuildDataDropdownList(dataEntries)
     local list = {}
     for _, entry in ipairs(dataEntries) do
         local label = FetchItemSpellInformation(entry.id, entry.entryType)
-        list[entry.entryType .. ":" .. entry.id] = label or ("ID " .. tostring(entry.id))
+        list[entry.entryType .. ":" .. entry.id] = label .. " [|cFF8080FF" .. entry.id .. "|r]" or ("ID " .. tostring(entry.id))
     end
     return list
 end
@@ -983,7 +983,7 @@ local function CreateCooldownViewerSpellSettings(parentContainer, customDB, cont
             local data = spell.data
 
             local spellCheckbox = AG:Create("CheckBox")
-            spellCheckbox:SetLabel("[" .. data.layoutIndex .. "] " .. FetchSpellInformation(spellId))
+            spellCheckbox:SetLabel("[" .. (data.layoutIndex or "?") .. "] " .. (FetchSpellInformation(spellId) or ("SpellID: " .. spellId)))
             spellCheckbox:SetValue(data.isActive)
             spellCheckbox:SetCallback("OnValueChanged", function(_, _, value) SpellDB[playerClass][playerSpecialization][spellId].isActive = value BCDM:UpdateCooldownViewer("Custom") end)
             spellCheckbox:SetCallback("OnEnter", function(widget) ShowSpellTooltip(widget.frame, spellId) end)
@@ -1068,7 +1068,7 @@ local function CreateCooldownViewerItemSettings(parentContainer, containerToRefr
             local data = item.data
 
             local itemCheckbox = AG:Create("CheckBox")
-            itemCheckbox:SetLabel("[" .. data.layoutIndex .. "] " .. FetchItemInformation(itemId))
+            itemCheckbox:SetLabel("[" .. (data.layoutIndex or "?") .. "] " .. (FetchItemSpellInformation(itemId, data.entryType) or "Unknown"))
             itemCheckbox:SetValue(data.isActive)
             itemCheckbox:SetCallback("OnValueChanged", function(_, _, value) ItemDB[itemId].isActive = value BCDM:UpdateCooldownViewer("Item") end)
             itemCheckbox:SetCallback("OnEnter", function(widget) ShowItemTooltip(widget.frame, itemId) end)

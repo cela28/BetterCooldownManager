@@ -243,7 +243,38 @@ local ITEMS = {
 }
 
 local RACIALS = {
-    [59752] = { isActive = true, layoutIndex = 1 }, -- Will To Survive
+    [59752]  = { isActive = true, layoutIndex = 1 },  -- Will to Survive
+    [20594]  = { isActive = true, layoutIndex = 2 },  -- Stoneform
+    [58984]  = { isActive = true, layoutIndex = 3 },  -- Shadowmeld
+    [20589]  = { isActive = true, layoutIndex = 4 },  -- Escape Artist
+    [28880]  = { isActive = true, layoutIndex = 5 },  -- Gift of the Naaru
+    [68992]  = { isActive = true, layoutIndex = 6 },  -- Darkflight
+    [68996]  = { isActive = true, layoutIndex = 7 },  -- Two Forms
+    [20572]  = { isActive = true, layoutIndex = 8 },  -- Blood Fury
+    [7744]   = { isActive = true, layoutIndex = 9 },  -- Will of the Forsaken
+    [20577]  = { isActive = true, layoutIndex = 10 }, -- Cannibalize
+    [20549]  = { isActive = true, layoutIndex = 11 }, -- War Stomp
+    [26297]  = { isActive = true, layoutIndex = 12 }, -- Berserking
+    [202719] = { isActive = true, layoutIndex = 13 }, -- Arcane Torrent
+    [69070]  = { isActive = true, layoutIndex = 14 }, -- Rocket Jump
+    [69041]  = { isActive = true, layoutIndex = 15 }, -- Rocket Barrage
+    [256948] = { isActive = true, layoutIndex = 16 }, -- Spatial Rift
+    [255647] = { isActive = true, layoutIndex = 17 }, -- Light's Judgment
+    [255630] = { isActive = true, layoutIndex = 18 }, -- Forge of Light
+    [265221] = { isActive = true, layoutIndex = 19 }, -- Fireblood
+    [265459] = { isActive = true, layoutIndex = 20 }, -- Mole Machine
+    [291944] = { isActive = true, layoutIndex = 21 }, -- Regeneratin'
+    [281954] = { isActive = true, layoutIndex = 22 }, -- Pterrordax Swoop
+    [312411] = { isActive = true, layoutIndex = 23 }, -- Bag of Tricks
+    [312370] = { isActive = true, layoutIndex = 24 }, -- Make Camp
+    [312924] = { isActive = true, layoutIndex = 25 }, -- Hyper Organic Light Originator
+    [107079] = { isActive = true, layoutIndex = 26 }, -- Quaking Palm
+    [369536] = { isActive = true, layoutIndex = 27 }, -- Soar
+    [368970] = { isActive = true, layoutIndex = 28 }, -- Tail Swipe
+    [368847] = { isActive = true, layoutIndex = 29 }, -- Wing Buffet
+    [365812] = { isActive = true, layoutIndex = 30 }, -- Glide
+    [436344] = { isActive = true, layoutIndex = 31 }, -- Azerite Surge
+    [443421] = { isActive = true, layoutIndex = 32 }, -- Lash Out
 }
 
 function BCDM:AddRecommendedItems()
@@ -274,6 +305,9 @@ function BCDM:FetchData(options)
     if includeSpells and DEFENSIVE_SPELLS[playerClass] and DEFENSIVE_SPELLS[playerClass][playerSpecialization] then
         for spellId, data in pairs(DEFENSIVE_SPELLS[playerClass][playerSpecialization]) do
             dataList[#dataList + 1] = { id = spellId, data = data, entryType = "spell" }
+        end
+        for racialId, data in pairs(RACIALS) do
+            dataList[#dataList + 1] = { id = racialId, data = data, entryType = "spell" }
         end
     end
 
