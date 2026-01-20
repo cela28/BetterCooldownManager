@@ -1,6 +1,6 @@
 local _, BCDM = ...
 
-BCDM.DEFENSIVE_SPELLS = {
+local DEFENSIVE_SPELLS = {
     -- Monk
     ["MONK"] = {
         ["BREWMASTER"] = {
@@ -236,11 +236,14 @@ BCDM.DEFENSIVE_SPELLS = {
     }
 }
 
-BCDM.ITEMS = {
+local ITEMS = {
     [241304] = { isActive = true, layoutIndex = 1 }, -- Silvermoon Healing Potion
     [241308] = { isActive = true, layoutIndex = 2 }, -- Light's Potential
     [5512]   = { isActive = true, layoutIndex = 3 }, -- Healthstone
     [224464] = { isActive = true, layoutIndex = 4 }, -- Demonic Healthstone
+}
+
+local RACIALS = {
 }
 
 function BCDM:AddRecommendedItems()
@@ -248,15 +251,51 @@ function BCDM:AddRecommendedItems()
     if not CooldownManagerDB then return end
 
     local CustomDB = CooldownManagerDB.CooldownManager.Item
-    if not BCDM.ITEMS or type(BCDM.ITEMS) ~= "table" then return end
+    if not ITEMS or type(ITEMS) ~= "table" then return end
     if not CustomDB then CustomDB = {} CooldownManagerDB.CooldownManager.Item = CustomDB end
     if not CustomDB.Items then CustomDB.Items = {} end
 
-    for itemId, data in pairs(BCDM.ITEMS) do
+    for itemId, data in pairs(ITEMS) do
         if itemId and data and not CustomDB.Items[itemId] then
             CustomDB.Items[itemId] = data
         end
     end
+end
+
+function BCDM:FetchData(options)
+    options = options or {}
+    local includeSpells = options.includeSpells
+    local includeItems = options.includeItems
+    local dataList = {}
+
+    local _, playerClass = UnitClass("player")
+    local playerSpecialization = select(2, GetSpecializationInfo(GetSpecialization())):gsub(" ", ""):upper()
+
+    if includeSpells and DEFENSIVE_SPELLS[playerClass] and DEFENSIVE_SPELLS[playerClass][playerSpecialization] then
+        for spellId, data in pairs(DEFENSIVE_SPELLS[playerClass][playerSpecialization]) do
+            dataList[#dataList + 1] = { id = spellId, data = data, entryType = "spell" }
+        end
+    end
+
+    if includeItems and ITEMS then
+        for itemId, data in pairs(ITEMS) do
+            dataList[#dataList + 1] = { id = itemId, data = data, entryType = "item" }
+        end
+    end
+
+    table.sort(dataList, function(a, b)
+        if a.entryType ~= b.entryType then
+            return a.entryType < b.entryType
+        end
+        local aIndex = a.data and a.data.layoutIndex or math.huge
+        local bIndex = b.data and b.data.layoutIndex or math.huge
+        if aIndex == bIndex then
+            return a.id < b.id
+        end
+        return aIndex < bIndex
+    end)
+
+    return dataList
 end
 
 function BCDM:AddRecommendedSpells(customDB)
@@ -264,8 +303,8 @@ function BCDM:AddRecommendedSpells(customDB)
     local CustomDB = CooldownManagerDB.CooldownManager[customDB]
     local _, playerClass = UnitClass("player")
     local playerSpecialization = select(2, GetSpecializationInfo(GetSpecialization())):gsub(" ", ""):upper()
-    if BCDM.DEFENSIVE_SPELLS[playerClass] and BCDM.DEFENSIVE_SPELLS[playerClass][playerSpecialization] then
-        for spellId, data in pairs(BCDM.DEFENSIVE_SPELLS[playerClass][playerSpecialization]) do
+    if DEFENSIVE_SPELLS[playerClass] and DEFENSIVE_SPELLS[playerClass][playerSpecialization] then
+        for spellId, data in pairs(DEFENSIVE_SPELLS[playerClass][playerSpecialization]) do
             if not CustomDB.Spells[playerClass] then CustomDB.Spells[playerClass] = {} end
             if not CustomDB.Spells[playerClass][playerSpecialization] then CustomDB.Spells[playerClass][playerSpecialization] = {} end
             if not CustomDB.Spells[playerClass][playerSpecialization][spellId] then
@@ -311,5 +350,3 @@ function BCDM:FetchEquippedTrinkets()
 
     BCDM:UpdateCooldownViewer("Trinket")
 end
-
-

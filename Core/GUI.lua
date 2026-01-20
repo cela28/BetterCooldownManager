@@ -279,6 +279,22 @@ local function FetchItemSpellInformation(entryId, entryType)
     return FetchItemInformation(entryId) or FetchSpellInformation(entryId)
 end
 
+local function BuildDataDropdownList(dataEntries)
+    local list = {}
+    for _, entry in ipairs(dataEntries) do
+        local label = FetchItemSpellInformation(entry.id, entry.entryType)
+        list[entry.entryType .. ":" .. entry.id] = label or ("ID " .. tostring(entry.id))
+    end
+    return list
+end
+
+local function ParseDataDropdownValue(value)
+    if not value then return end
+    local entryType, id = string.match(value, "^(%a+):(%d+)$")
+    if not entryType then return end
+    return entryType, tonumber(id)
+end
+
 local function ShowItemTooltip(owner, itemId)
     if not owner or not itemId then return end
     GameTooltip:SetOwner(owner, "ANCHOR_CURSOR")
@@ -938,16 +954,22 @@ local function CreateCooldownViewerSpellSettings(parentContainer, customDB, cont
     end)
     parentContainer:AddChild(addSpellEditBox)
 
-    local addRecommendedButton = AG:Create("Button")
-    addRecommendedButton:SetText("Add Recommended Spells")
-    addRecommendedButton:SetRelativeWidth(0.5)
-    addRecommendedButton:SetCallback("OnClick", function()
-        BCDM:AddRecommendedSpells(customDB)
-        BCDM:UpdateCooldownViewer(customDB)
-        parentContainer:ReleaseChildren()
-        CreateCooldownViewerSpellSettings(parentContainer, customDB, containerToRefresh)
+    local dataListDropdown = AG:Create("Dropdown")
+    dataListDropdown:SetLabel("Spell List")
+    dataListDropdown:SetList(BuildDataDropdownList(BCDM:FetchData({ includeSpells = true })))
+    dataListDropdown:SetValue(nil)
+    dataListDropdown:SetCallback("OnValueChanged", function(_, _, value)
+        local entryType, entryId = ParseDataDropdownValue(value)
+        if entryType == "spell" and entryId then
+            BCDM:AdjustSpellList(entryId, "add", customDB)
+            BCDM:UpdateCooldownViewer(customDB)
+            parentContainer:ReleaseChildren()
+            CreateCooldownViewerSpellSettings(parentContainer, customDB, containerToRefresh)
+        end
     end)
-    parentContainer:AddChild(addRecommendedButton)
+    dataListDropdown:SetRelativeWidth(0.5)
+    parentContainer:AddChild(dataListDropdown)
+
 
     if SpellDB[playerClass] and SpellDB[playerClass][playerSpecialization] then
 
@@ -1018,16 +1040,21 @@ local function CreateCooldownViewerItemSettings(parentContainer, containerToRefr
     end)
     parentContainer:AddChild(addItemEditBox)
 
-    local addRecommendedButton = AG:Create("Button")
-    addRecommendedButton:SetText("Add Recommended Items")
-    addRecommendedButton:SetRelativeWidth(0.5)
-    addRecommendedButton:SetCallback("OnClick", function()
-        BCDM:AddRecommendedItems()
-        BCDM:UpdateCooldownViewer("Item")
-        parentContainer:ReleaseChildren()
-        CreateCooldownViewerItemSettings(parentContainer, containerToRefresh)
+    local dataListDropdown = AG:Create("Dropdown")
+    dataListDropdown:SetLabel("Item List")
+    dataListDropdown:SetList(BuildDataDropdownList(BCDM:FetchData({ includeItems = true })))
+    dataListDropdown:SetValue(nil)
+    dataListDropdown:SetCallback("OnValueChanged", function(_, _, value)
+        local entryType, entryId = ParseDataDropdownValue(value)
+        if entryType == "item" and entryId then
+            BCDM:AdjustItemList(entryId, "add")
+            BCDM:UpdateCooldownViewer("Item")
+            parentContainer:ReleaseChildren()
+            CreateCooldownViewerItemSettings(parentContainer, containerToRefresh)
+        end
     end)
-    parentContainer:AddChild(addRecommendedButton)
+    dataListDropdown:SetRelativeWidth(0.5)
+    parentContainer:AddChild(dataListDropdown)
 
     if ItemDB then
 
@@ -1085,7 +1112,7 @@ local function CreateCooldownViewerItemSpellSettings(parentContainer, containerT
 
     local addSpellEditBox = AG:Create("EditBox")
     addSpellEditBox:SetLabel("Add Spell by ID or Spell Name")
-    addSpellEditBox:SetRelativeWidth(0.5)
+    addSpellEditBox:SetRelativeWidth(0.33)
     addSpellEditBox:SetCallback("OnEnterPressed", function(self)
         local input = self:GetText()
         local spellId = FetchSpellID(input)
@@ -1101,7 +1128,7 @@ local function CreateCooldownViewerItemSpellSettings(parentContainer, containerT
 
     local addItemEditBox = AG:Create("EditBox")
     addItemEditBox:SetLabel("Add Item by ID")
-    addItemEditBox:SetRelativeWidth(0.5)
+    addItemEditBox:SetRelativeWidth(0.33)
     addItemEditBox:SetCallback("OnEnterPressed", function(self)
         local input = self:GetText()
         local itemId = tonumber(input)
@@ -1114,6 +1141,22 @@ local function CreateCooldownViewerItemSpellSettings(parentContainer, containerT
         end
     end)
     parentContainer:AddChild(addItemEditBox)
+
+    local dataListDropdown = AG:Create("Dropdown")
+    dataListDropdown:SetLabel("Spell & Item List")
+    dataListDropdown:SetList(BuildDataDropdownList(BCDM:FetchData({ includeSpells = true, includeItems = true })))
+    dataListDropdown:SetValue(nil)
+    dataListDropdown:SetCallback("OnValueChanged", function(_, _, value)
+        local entryType, entryId = ParseDataDropdownValue(value)
+        if entryType and entryId then
+            BCDM:AdjustItemsSpellsList(entryId, "add", entryType)
+            BCDM:UpdateCooldownViewer("ItemSpell")
+            parentContainer:ReleaseChildren()
+            CreateCooldownViewerItemSpellSettings(parentContainer, containerToRefresh)
+        end
+    end)
+    dataListDropdown:SetRelativeWidth(0.33)
+    parentContainer:AddChild(dataListDropdown)
 
     if ItemSpellDB then
 
@@ -1160,6 +1203,8 @@ local function CreateCooldownViewerItemSpellSettings(parentContainer, containerT
         end
     end
 
+    containerToRefresh:DoLayout()
+    parentContainer:DoLayout()
 
     return parentContainer
 end
