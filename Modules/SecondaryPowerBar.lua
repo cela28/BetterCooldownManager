@@ -115,25 +115,25 @@ local function CreateRuneBars()
     end
 end
 
-local function CreateComboPoints(maxPower)
-    local parent = BCDM.SecondaryPowerBar
-    if not parent then return end
+-- local function CreateComboPoints(maxPower)
+--     local parent = BCDM.SecondaryPowerBar
+--     if not parent then return end
 
-    for i = 1, #comboPoints do
-        comboPoints[i]:Hide()
-        comboPoints[i]:SetParent(nil)
-        comboPoints[i] = nil
-    end
-    wipe(comboPoints)
+--     for i = 1, #comboPoints do
+--         comboPoints[i]:Hide()
+--         comboPoints[i]:SetParent(nil)
+--         comboPoints[i] = nil
+--     end
+--     wipe(comboPoints)
 
-    for i = 1, maxPower do
-        local bar = CreateFrame("StatusBar", nil, parent)
-        bar:SetStatusBarTexture(BCDM.Media.Foreground)
-        bar:SetMinMaxValues(0, 1)
-        bar:SetValue(0)
-        comboPoints[i] = bar
-    end
-end
+--     for i = 1, maxPower do
+--         local bar = CreateFrame("StatusBar", nil, parent)
+--         bar:SetStatusBarTexture(BCDM.Media.Foreground)
+--         bar:SetMinMaxValues(0, 1)
+--         bar:SetValue(0)
+--         comboPoints[i] = bar
+--     end
+-- end
 
 local function CreateEssenceTicks(maxEssence)
     local parent = BCDM.SecondaryPowerBar
@@ -183,33 +183,33 @@ local function LayoutRuneBars()
     end
 end
 
-local function LayoutComboPoints()
-    local parent = BCDM.SecondaryPowerBar
-    if not parent or #comboPoints == 0 then return end
+-- local function LayoutComboPoints()
+--     local parent = BCDM.SecondaryPowerBar
+--     if not parent or #comboPoints == 0 then return end
 
-    local inset = 1
-    local width = parent:GetWidth() - inset * 2
-    local height = parent:GetHeight() - inset * 2
-    local count = #comboPoints
-    local barWidth = math.floor(width / count)
+--     local inset = 1
+--     local width = parent:GetWidth() - inset * 2
+--     local height = parent:GetHeight() - inset * 2
+--     local count = #comboPoints
+--     local barWidth = math.floor(width / count)
 
-    for i = 1, count do
-        local bar = comboPoints[i]
-        bar:ClearAllPoints()
-        bar:SetHeight(height)
+--     for i = 1, count do
+--         local bar = comboPoints[i]
+--         bar:ClearAllPoints()
+--         bar:SetHeight(height)
 
-        if i == count then
-            bar:SetPoint("TOPLEFT", comboPoints[i-1], "TOPRIGHT", 0, 0)
-            bar:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -inset, inset)
-        elseif i == 1 then
-            bar:SetPoint("TOPLEFT", parent, "TOPLEFT", inset, -inset)
-            bar:SetWidth(barWidth)
-        else
-            bar:SetPoint("TOPLEFT", comboPoints[i-1], "TOPRIGHT", 0, 0)
-            bar:SetWidth(barWidth)
-        end
-    end
-end
+--         if i == count then
+--             bar:SetPoint("TOPLEFT", comboPoints[i-1], "TOPRIGHT", 0, 0)
+--             bar:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -inset, inset)
+--         elseif i == 1 then
+--             bar:SetPoint("TOPLEFT", parent, "TOPLEFT", inset, -inset)
+--             bar:SetWidth(barWidth)
+--         else
+--             bar:SetPoint("TOPLEFT", comboPoints[i-1], "TOPRIGHT", 0, 0)
+--             bar:SetWidth(barWidth)
+--         end
+--     end
+-- end
 
 local function LayoutEssenceTicks()
     local parent = BCDM.SecondaryPowerBar
@@ -320,44 +320,44 @@ local function UpdateRuneDisplay()
     end
 end
 
-local function UpdateComboDisplay()
-    local powerCurrent = UnitPower("player", Enum.PowerType.ComboPoints) or 0
-    local powerMax = UnitPowerMax("player", Enum.PowerType.ComboPoints) or 0
-    local charged = GetUnitChargedPowerPoints("player")
-    local chargedLookup = {}
+-- local function UpdateComboDisplay()
+--     local powerCurrent = UnitPower("player", Enum.PowerType.ComboPoints) or 0
+--     local powerMax = UnitPowerMax("player", Enum.PowerType.ComboPoints) or 0
+--     local charged = GetUnitChargedPowerPoints("player")
+--     local chargedLookup = {}
 
-    if charged then
-        for _, index in ipairs(charged) do
-            chargedLookup[index] = true
-        end
-    end
+--     if charged then
+--         for _, index in ipairs(charged) do
+--             chargedLookup[index] = true
+--         end
+--     end
 
-    if #comboPoints ~= powerMax then
-        CreateComboPoints(powerMax)
-        LayoutComboPoints()
-    end
+--     if #comboPoints ~= powerMax then
+--         CreateComboPoints(powerMax)
+--         LayoutComboPoints()
+--     end
 
-    local powerBarColourR, powerBarColourG, powerBarColourB, powerBarColourA = GetPowerBarColor()
-    local chargedComboPointColourR, chargedComboPointColourG, chargedComboPointColourB, chargedComboPointColourA = unpack(BCDM.db.profile.General.Colours.SecondaryPower["CHARGED_COMBO_POINTS"] or {0.25, 0.5, 1.0, 1.0})
+--     local powerBarColourR, powerBarColourG, powerBarColourB, powerBarColourA = GetPowerBarColor()
+--     local chargedComboPointColourR, chargedComboPointColourG, chargedComboPointColourB, chargedComboPointColourA = unpack(BCDM.db.profile.General.Colours.SecondaryPower["CHARGED_COMBO_POINTS"] or {0.25, 0.5, 1.0, 1.0})
 
-    for i = 1, powerMax do
-        local bar = comboPoints[i]
+--     for i = 1, powerMax do
+--         local bar = comboPoints[i]
 
-        if i <= powerCurrent then
-            bar:SetValue(1)
-            if chargedLookup[i] then
-                bar:SetStatusBarColor(chargedComboPointColourR, chargedComboPointColourG, 
-                                     chargedComboPointColourB, chargedComboPointColourA or 1)
-            else
-                bar:SetStatusBarColor(powerBarColourR, powerBarColourG, powerBarColourB, powerBarColourA or 1)
-            end
-            bar:Show()
-        else
-            bar:SetValue(0)
-            bar:Hide()
-        end
-    end
-end
+--         if i <= powerCurrent then
+--             bar:SetValue(1)
+--             if chargedLookup[i] then
+--                 bar:SetStatusBarColor(chargedComboPointColourR, chargedComboPointColourG,
+--                                      chargedComboPointColourB, chargedComboPointColourA or 1)
+--             else
+--                 bar:SetStatusBarColor(powerBarColourR, powerBarColourG, powerBarColourB, powerBarColourA or 1)
+--             end
+--             bar:Show()
+--         else
+--             bar:SetValue(0)
+--             bar:Hide()
+--         end
+--     end
+-- end
 
 local function StartEssenceOnUpdate(tick, tickDuration, nextTickTime)
     tick.bar:SetScript("OnUpdate", function(self)
@@ -500,17 +500,17 @@ local function UpdatePowerValues()
         secondaryPowerBar.Status:Show()
     elseif powerType == Enum.PowerType.ComboPoints then
         secondaryPowerBar.Status:SetValue(0)
-        local isRogue = select(2, UnitClass("player")) == "ROGUE"
-        if isRogue then
-            UpdateComboDisplay()
-            secondaryPowerBar.Text:SetText(tostring(UnitPower("player", Enum.PowerType.ComboPoints) or 0))
-        else
+        -- local isRogue = select(2, UnitClass("player")) == "ROGUE"
+        -- if isRogue then
+        --     UpdateComboDisplay()
+        --     secondaryPowerBar.Text:SetText(tostring(UnitPower("player", Enum.PowerType.ComboPoints) or 0))
+        -- else
             powerCurrent = UnitPower("player", Enum.PowerType.ComboPoints) or 0
             local powerMax = UnitPowerMax("player", Enum.PowerType.ComboPoints) or 0
             secondaryPowerBar.Status:SetMinMaxValues(0, powerMax)
             secondaryPowerBar.Status:SetValue(powerCurrent)
             secondaryPowerBar.Text:SetText(tostring(powerCurrent))
-        end
+        -- end
         secondaryPowerBar.Status:Show()
     elseif powerType == Enum.PowerType.Essence then
         -- Inspired by Sensei's Resource Bar - <https://www.curseforge.com/wow/addons/senseiclassresourcebar>
