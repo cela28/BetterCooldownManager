@@ -1,4 +1,5 @@
 local _, BCDM = ...
+local LEMO = LibStub("LibEditModeOverride-1.0")
 
 local function ShouldSkin()
     if not BCDM.db.profile.CooldownManager.Enable then return false end
@@ -335,6 +336,9 @@ function BCDM:UpdateCooldownViewer(viewerType)
     if viewerType == "Trinket" then BCDM:UpdateTrinketBar() return end
     if viewerType == "ItemSpell" then BCDM:UpdateCustomItemsSpellsBar() return end
     if viewerType == "Buffs" then SetupCenterBuffs() end
+
+    LEMO:LoadLayouts()
+
     for _, childFrame in ipairs({cooldownViewerFrame:GetChildren()}) do
         if childFrame then
             if childFrame.Icon and ShouldSkin() then
@@ -355,7 +359,7 @@ function BCDM:UpdateCooldownViewer(viewerType)
         end
     end
 
-    if cooldownViewerFrame then cooldownViewerFrame:Hide() C_Timer.After(0.001, function() cooldownViewerFrame:Show() end) end
+    LEMO:ApplyChanges()
 
     StyleIcons()
 
