@@ -775,6 +775,24 @@ local function CreateGlobalSettings(parentContainer)
     BackgroundTextureDropdown:SetCallback("OnValueChanged", function(widget, _, value) widget:SetValue(value) BCDM.db.profile.General.Textures.Background = value BCDM:ResolveLSM() BCDM:UpdateBCDM() end)
     TextureContainer:AddChild(BackgroundTextureDropdown)
 
+    local AnimationContainer = AG:Create("InlineGroup")
+    AnimationContainer:SetTitle("Animation Settings")
+    AnimationContainer:SetFullWidth(true)
+    AnimationContainer:SetLayout("Flow")
+    globalSettingsContainer:AddChild(AnimationContainer)
+
+    local smoothBarsCheckbox = AG:Create("CheckBox")
+    smoothBarsCheckbox:SetLabel("Smooth Bar Animation")
+    smoothBarsCheckbox:SetDescription("Enable smooth transitions for Power Bar, Secondary Power Bar, and Cast Bar")
+    smoothBarsCheckbox:SetValue(GeneralDB.Animation and GeneralDB.Animation.SmoothBars or false)
+    smoothBarsCheckbox:SetCallback("OnValueChanged", function(self, _, value)
+        if not GeneralDB.Animation then GeneralDB.Animation = {} end
+        GeneralDB.Animation.SmoothBars = value
+        BCDM:UpdateBCDM()
+    end)
+    smoothBarsCheckbox:SetFullWidth(true)
+    AnimationContainer:AddChild(smoothBarsCheckbox)
+
     CreateCooldownTextSettings(globalSettingsContainer)
 
     ScrollFrame:DoLayout()
