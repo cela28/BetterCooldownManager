@@ -561,6 +561,8 @@ local function UpdatePowerValues()
 end
 
 local function CreateTicksBasedOnPowerType()
+    local SecondaryPowerBarDB = BCDM.db.profile.SecondaryPowerBar
+    if SecondaryPowerBarDB.HideTicks then BCDM:ClearTicks() return end
     local secondaryPowerResource = DetectSecondaryPower()
 
     if secondaryPowerResource == "SOUL" then
