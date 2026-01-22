@@ -2065,7 +2065,7 @@ local function CreateCastBarTextSettings(parentContainer)
     local spellName_MaxCharactersSlider = AG:Create("Slider")
     spellName_MaxCharactersSlider:SetLabel("Max Characters")
     spellName_MaxCharactersSlider:SetValue(BCDM.db.profile.CastBar.Text.SpellName.MaxCharacters)
-    spellName_MaxCharactersSlider:SetSliderValues(0, 24, 1)
+    spellName_MaxCharactersSlider:SetSliderValues(0, 32, 1)
     spellName_MaxCharactersSlider:SetCallback("OnValueChanged", function(self, _, value) BCDM.db.profile.CastBar.Text.SpellName.MaxCharacters = value BCDM:UpdateCastBar() end)
     spellName_MaxCharactersSlider:SetRelativeWidth(0.25)
     spellNameContainer:AddChild(spellName_MaxCharactersSlider)
@@ -2596,7 +2596,7 @@ function BCDM:CreateGUI()
         elseif MainTab == "Profiles" then
             CreateProfileSettings(Wrapper)
         end
-        if MainTab == "Buffs" then CooldownViewerSettings:Show() else CooldownViewerSettings:Hide() end
+        if MainTab == "Essential" or MainTab == "Utility" or MainTab == "Buffs" then CooldownViewerSettings:Show() else CooldownViewerSettings:Hide() end
         if MainTab == "CastBar" then BCDM.CAST_BAR_TEST_MODE = true BCDM:CreateTestCastBar() else BCDM.CAST_BAR_TEST_MODE = false BCDM:CreateTestCastBar() end
         if MainTab == "Essential" then  BCDM.EssentialCooldownViewerOverlay:Show() else BCDM.EssentialCooldownViewerOverlay:Hide() end
         if MainTab == "Utility" then  BCDM.UtilityCooldownViewerOverlay:Show() else BCDM.UtilityCooldownViewerOverlay:Hide() end
