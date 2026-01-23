@@ -4,6 +4,7 @@ local AG = BCDM.AG
 local isGUIOpen = false
 local isUnitDeathKnight = BCDM.IS_DEATHKNIGHT
 local isUnitMonk = BCDM.IS_MONK
+local LEMO = LibStub("LibEditModeOverride-1.0")
 BCDMGUI = {}
 
 local AnchorPoints = { { ["TOPLEFT"] = "Top Left", ["TOP"] = "Top", ["TOPRIGHT"] = "Top Right", ["LEFT"] = "Left", ["CENTER"] = "Center", ["RIGHT"] = "Right", ["BOTTOMLEFT"] = "Bottom Left", ["BOTTOM"] = "Bottom", ["BOTTOMRIGHT"] = "Bottom Right" }, { "TOPLEFT", "TOP", "TOPRIGHT", "LEFT", "CENTER", "RIGHT", "BOTTOMLEFT", "BOTTOM", "BOTTOMRIGHT", } }
@@ -1411,8 +1412,14 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
     iconSizeSlider:SetRelativeWidth(isCustomViewer and 0.25 or 0.33)
     layoutContainer:AddChild(iconSizeSlider)
 
-    if viewerType == "Essential" or viewerType == "Buffs" then
-        CreateInformationTag(layoutContainer, "If you are unable to move the |cFF8080FF" .. viewerType .. "|r Cooldown Viewer, please move it |cFFFF4040ONCE|r via Edit Mode.\nIt will then remember the set position within |cFF8080FFBetter|rCooldownManager.");
+    if viewerType == "Essential" or viewerType == "Utility" or viewerType == "Buffs" then
+        local infoTag = CreateInformationTag(layoutContainer, "Updates To Sizes will be applied on closing the |cFF8080FFBetter|rCooldownManager Configuration Window.")
+        infoTag:SetRelativeWidth(0.7)
+        local forceUpdateButton = AG:Create("Button")
+        forceUpdateButton:SetText("Force Update")
+        forceUpdateButton:SetRelativeWidth(0.3)
+        forceUpdateButton:SetCallback("OnClick", function() LEMO:ApplyChanges() end)
+        layoutContainer:AddChild(forceUpdateButton)
     end
 
     if isCustomViewer then
@@ -2554,7 +2561,7 @@ function BCDM:CreateGUI()
     Container:SetWidth(900)
     Container:SetHeight(600)
     Container:EnableResize(false)
-    Container:SetCallback("OnClose", function(widget) AG:Release(widget) BCDM:UpdateBCDM() isGUIOpen = false BCDM.CAST_BAR_TEST_MODE = false BCDM:CreateTestCastBar() BCDM.EssentialCooldownViewerOverlay:Hide() BCDM.UtilityCooldownViewerOverlay:Hide() BCDM.BuffIconCooldownViewerOverlay:Hide() end)
+    Container:SetCallback("OnClose", function(widget) AG:Release(widget) LEMO:ApplyChanges() BCDM:UpdateBCDM() isGUIOpen = false BCDM.CAST_BAR_TEST_MODE = false BCDM:CreateTestCastBar() BCDM.EssentialCooldownViewerOverlay:Hide() BCDM.UtilityCooldownViewerOverlay:Hide() BCDM.BuffIconCooldownViewerOverlay:Hide() end)
 
     local function SelectTab(GUIContainer, _, MainTab)
         GUIContainer:ReleaseChildren()

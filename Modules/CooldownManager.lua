@@ -321,9 +321,8 @@ function BCDM:SkinCooldownManager()
     -- C_Timer.After(1, function() StyleBuffsBars() end)
     SetHooks()
     SetupCenterBuffs()
-    for _, viewerName in ipairs(BCDM.CooldownManagerViewers) do
-        C_Timer.After(0.1, function() ApplyCooldownText(viewerName) end)
-    end
+    for _, viewerName in ipairs(BCDM.CooldownManagerViewers) do C_Timer.After(0.1, function() ApplyCooldownText(viewerName) end) end
+    LEMO:LoadLayouts()
 end
 
 function BCDM:UpdateCooldownViewer(viewerType)
@@ -337,7 +336,6 @@ function BCDM:UpdateCooldownViewer(viewerType)
     if viewerType == "ItemSpell" then BCDM:UpdateCustomItemsSpellsBar() return end
     if viewerType == "Buffs" then SetupCenterBuffs() end
 
-    LEMO:LoadLayouts()
 
     for _, childFrame in ipairs({cooldownViewerFrame:GetChildren()}) do
         if childFrame then
@@ -358,8 +356,6 @@ function BCDM:UpdateCooldownViewer(viewerType)
             childFrame:SetSize(cooldownManagerSettings[viewerType].IconSize, cooldownManagerSettings[viewerType].IconSize)
         end
     end
-
-    LEMO:ApplyChanges()
 
     StyleIcons()
 
