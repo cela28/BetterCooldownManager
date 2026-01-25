@@ -103,6 +103,14 @@ local Defaults = {
                     Layout = {"CENTER", "CENTER", 0, 0},
                     ScaleByIconSize = false
                 },
+                Keybinds = {
+                    Enabled = false,
+                    Anchor = "CENTER",
+                    FontSize = 14,
+                    FontFlags = {},
+                    OffsetX = 0,
+                    OffsetY = 0,
+                },
             },
             Essential = {
                 IconSize = 42,

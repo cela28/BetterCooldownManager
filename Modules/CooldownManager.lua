@@ -373,6 +373,9 @@ function BCDM:UpdateCooldownViewer(viewerType)
 
     ApplyCooldownText(BCDM.DBViewerToCooldownManagerViewer[viewerType])
 
+    -- Update keybinds for the viewer
+    BCDM.Keybinds:UpdateViewerKeybinds(BCDM.DBViewerToCooldownManagerViewer[viewerType])
+
     BCDM:UpdatePowerBarWidth()
     BCDM:UpdateSecondaryPowerBarWidth()
     BCDM:UpdateCastBarWidth()
