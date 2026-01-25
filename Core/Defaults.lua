@@ -105,9 +105,9 @@ local Defaults = {
                 },
                 Keybinds = {
                     Enabled = false,
-                    Anchor = "CENTER",
+                    AnchorFrom = "CENTER",
+                    AnchorTo = "CENTER",
                     FontSize = 14,
-                    FontFlags = {},
                     OffsetX = 0,
                     OffsetY = 0,
                 },

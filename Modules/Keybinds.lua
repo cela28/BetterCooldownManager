@@ -3,14 +3,7 @@ local _, BCDM = ...
 local Keybinds = {}
 BCDM.Keybinds = Keybinds
 
-local LSM = LibStub("LibSharedMedia-3.0", true)
-
-local KEYBIND_DEBUG = false
-local PrintDebug = function(...)
-    if KEYBIND_DEBUG then
-        print("[BCDM Keybinds]", ...)
-    end
-end
+local LSM = BCDM.LSM
 
 local isModuleKeybindsEnabled = false
 local areHooksInitialized = false
@@ -34,19 +27,17 @@ local function GetFontPath(fontName)
     return DEFAULT_FONT_PATH
 end
 
--- Caches avoid re-scanning all action slots/bindings on every icon update.
--- They are rebuilt on binding/state/layout changes.
 
-local bindingKeyCache = {} -- {ACTIONBUTTON1 = "SHIFT-F",...}
+local bindingKeyCache = {}
 local bindingCacheValid = false
 
 local slotMappingCache = {}
 local slotMappingCacheKey = 0
 
-local keybindCache = {} -- {<slot_number> = "SHIFT-F",...}
+local keybindCache = {}
 local keybindCacheValid = false
 
-local iconSpellCache = {} -- {EssentialCooldownViewer= {1,2,3 = {keybind, spellID}}}
+local iconSpellCache = {}
 
 local cachedStateData = {
     page = 1,
@@ -72,23 +63,14 @@ local function IsKeybindEnabledForAnyViewer()
 end
 
 local function GetKeybindSettings()
-    local defaults = {
-        anchor = "CENTER",
-        fontSize = 14,
-        offsetX = 0,
-        offsetY = 0,
-    }
-
-    if not BCDM.db or not BCDM.db.profile then
-        return defaults
-    end
-
+    local KeybindsDB = BCDM.db.profile.CooldownManager.General.Keybinds
     local keybindSettings = BCDM.db.profile.CooldownManager.General.Keybinds or {}
     return {
-        anchor = keybindSettings.Anchor or defaults.anchor,
-        fontSize = keybindSettings.FontSize or defaults.fontSize,
-        offsetX = keybindSettings.OffsetX or defaults.offsetX,
-        offsetY = keybindSettings.OffsetY or defaults.offsetY,
+        anchorFrom = keybindSettings.AnchorFrom,
+        anchorTo = keybindSettings.AnchorTo,
+        fontSize = keybindSettings.FontSize,
+        offsetX = keybindSettings.OffsetX,
+        offsetY = keybindSettings.OffsetY,
     }
 end
 
@@ -306,8 +288,6 @@ local function GetFormattedKeybind(key)
 end
 
 function Keybinds:GetActionsTableBySpellId()
-    PrintDebug("Building Actions Table By Spell ID")
-
     local startSlot = 1
     local endSlot = 12
 
@@ -365,7 +345,7 @@ function Keybinds:FindKeybindForSpell(spellID, spellIdToSlotTable)
     elseif baseSpellID and spellIdToSlotTable[baseSpellID] then
         match = spellIdToSlotTable[baseSpellID]
     end
-    
+
     if match then
         local key = GetKeybindForSlot(match)
         if key and key ~= "" then
@@ -386,7 +366,7 @@ local function GetOrCreateKeybindText(icon)
     icon.bcdmKeybindText = CreateFrame("Frame", nil, icon, "BackdropTemplate")
     icon.bcdmKeybindText:SetFrameLevel(icon:GetFrameLevel() + 4)
     local keybindText = icon.bcdmKeybindText:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
-    keybindText:SetPoint(settings.anchor, icon, settings.anchor, settings.offsetX, settings.offsetY)
+    keybindText:SetPoint(settings.anchorFrom, icon, settings.anchorTo, settings.offsetX, settings.offsetY)
     keybindText:SetTextColor(1, 1, 1, 1)
     keybindText:SetShadowColor(0, 0, 0, 1)
     keybindText:SetShadowOffset(1, -1)
@@ -404,20 +384,26 @@ local function GetKeybindFontName()
 end
 
 local function ApplyKeybindTextSettings(icon)
-    if not icon.bcdmKeybindText then
-        return
-    end
+    local GeneralDB = BCDM.db.profile.General
+    if not icon.bcdmKeybindText then return end
 
     local settings = GetKeybindSettings()
     local keybindText = GetOrCreateKeybindText(icon)
 
     icon.bcdmKeybindText:Show()
     keybindText:ClearAllPoints()
-    keybindText:SetPoint(settings.anchor, icon, settings.anchor, settings.offsetX, settings.offsetY)
+    keybindText:SetPoint(settings.anchorFrom, icon, settings.anchorTo, settings.offsetX, settings.offsetY)
     local fontName = GetKeybindFontName()
     local fontPath = GetFontPath(fontName)
     local fontFlag = BCDM.db.profile.General.Fonts.FontFlag or ""
     keybindText:SetFont(fontPath, settings.fontSize, fontFlag)
+    if GeneralDB.Fonts.Shadow.Enabled then
+        keybindText:SetShadowColor(GeneralDB.Fonts.Shadow.Colour[1], GeneralDB.Fonts.Shadow.Colour[2], GeneralDB.Fonts.Shadow.Colour[3], GeneralDB.Fonts.Shadow.Colour[4])
+        keybindText:SetShadowOffset(GeneralDB.Fonts.Shadow.OffsetX, GeneralDB.Fonts.Shadow.OffsetY)
+    else
+        keybindText:SetShadowColor(0, 0, 0, 0)
+        keybindText:SetShadowOffset(0, 0)
+    end
 end
 
 local function ExtractSpellIDFromIcon(icon)
@@ -428,55 +414,11 @@ local function ExtractSpellIDFromIcon(icon)
     return nil
 end
 
-local function InjectCachedDataOntoIcons()
-    local injectedCount = 0
-
-    for viewerName, viewerData in pairs(iconSpellCache) do
-        local viewerFrame = _G[viewerName]
-        if viewerFrame then
-            local children = { viewerFrame:GetChildren() }
-            local childIndex = 0
-
-            for _, child in ipairs(children) do
-                if child.Icon then
-                    childIndex = childIndex + 1
-                    local layoutIndex = child.layoutIndex or child:GetName() or tostring(child)
-
-                    local cachedData = viewerData[tostring(layoutIndex)]
-                        or viewerData[layoutIndex]
-                        or viewerData[tostring(childIndex)]
-                        or viewerData[childIndex]
-
-                    if cachedData then
-                        if cachedData.keybind and cachedData.keybind ~= "" then
-                            child._bcdm_keybind = cachedData.keybind
-                        elseif not child._bcdm_keybind then
-                            child._bcdm_keybind = ""
-                        end
-                        injectedCount = injectedCount + 1
-                    end
-                end
-            end
-        end
-    end
-
-    PrintDebug("[BCDM Keybinds] Injected cached data onto", injectedCount, "icons")
-
-    return injectedCount
-end
-
 local function BuildIconSpellCacheForViewer(viewerName)
     local viewerFrame = _G[viewerName]
     if not viewerFrame then
         return
     end
-
-    PrintDebug(
-        "[BCDM Keybinds] BuildIconSpellCacheForViewer called for",
-        viewerName,
-        "inLockdown:",
-        tostring(InCombatLockdown())
-    )
 
     iconSpellCache[viewerName] = iconSpellCache[viewerName] or {}
     wipe(iconSpellCache[viewerName])
@@ -510,8 +452,6 @@ local function BuildIconSpellCacheForViewer(viewerName)
 end
 
 local function BuildAllIconSpellCaches()
-    PrintDebug("[BCDM Keybinds] BuildAllIconSpellCaches called inLockdown:", tostring(InCombatLockdown()))
-
     ValidateAndBuildKeybindCache()
     for _, viewerName in ipairs(BCDM.CooldownManagerViewers) do
         BuildIconSpellCacheForViewer(viewerName)
@@ -535,9 +475,7 @@ local function UpdateIconKeybind(icon)
     local keybind = icon._bcdm_keybind
 
     if not keybind or keybind == "" then
-        if icon.bcdmKeybindText then
-            icon.bcdmKeybindText:Hide()
-        end
+        if icon.bcdmKeybindText then icon.bcdmKeybindText:Hide() end
         return
     end
 
@@ -591,7 +529,6 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     end
 
     if event == "EDIT_MODE_LAYOUTS_UPDATED" then
-        PrintDebug("[BCDM Keybinds] EditMode layout changed - rebuilding cache")
         BuildAllIconSpellCaches()
         Keybinds:UpdateAllKeybinds()
     elseif event == "UPDATE_BINDINGS" then
@@ -602,7 +539,6 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     elseif event == "PLAYER_ENTERING_WORLD" then
         BuildAllIconSpellCaches()
         Keybinds:UpdateAllKeybinds()
-        PrintDebug("[BCDM Keybinds] PLAYER_ENTERING_WORLD")
     elseif
         event == "UPDATE_SHAPESHIFT_FORM"
         or event == "UPDATE_BONUS_ACTIONBAR"
@@ -630,8 +566,6 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 end)
 
 function Keybinds:Shutdown()
-    PrintDebug("[BCDM Keybinds] Shutting down module")
-
     isModuleKeybindsEnabled = false
 
     eventFrame:UnregisterAllEvents()
@@ -659,13 +593,8 @@ function Keybinds:Shutdown()
 end
 
 function Keybinds:Enable()
-    if isModuleKeybindsEnabled then
-        return
-    end
-    PrintDebug("[BCDM Keybinds] Enabling module")
-
+    if isModuleKeybindsEnabled then return end
     isModuleKeybindsEnabled = true
-
     eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
     eventFrame:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
     eventFrame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
@@ -685,12 +614,7 @@ function Keybinds:Enable()
             local viewerFrame = _G[viewerName]
             if viewerFrame then
                 hooksecurefunc(viewerFrame, "RefreshLayout", function()
-                    if not isModuleKeybindsEnabled then
-                        return
-                    end
-
-                    PrintDebug("[BCDM Keybinds] RefreshLayout called for viewer:", viewerName)
-
+                    if not isModuleKeybindsEnabled then return end
                     BuildIconSpellCacheForViewer(viewerName)
                     Keybinds:UpdateViewerKeybinds(viewerName)
                 end)
@@ -703,22 +627,12 @@ function Keybinds:Enable()
 end
 
 function Keybinds:Disable()
-    if not isModuleKeybindsEnabled then
-        return
-    end
-    PrintDebug("[BCDM Keybinds] Disabling module")
-
+    if not isModuleKeybindsEnabled then return end
     self:Shutdown()
 end
 
 function Keybinds:Initialize()
-    if not IsKeybindEnabledForAnyViewer() then
-        PrintDebug("[BCDM Keybinds] Not initializing - no viewers enabled")
-        return
-    end
-
-    PrintDebug("[BCDM Keybinds] Initializing module")
-
+    if not IsKeybindEnabledForAnyViewer() then return end
     self:Enable()
 end
 
@@ -738,7 +652,6 @@ function BCDM:UpdateKeybinds()
     if not isModuleKeybindsEnabled then
         return
     end
-    
     BuildAllIconSpellCaches()
     Keybinds:UpdateAllKeybinds()
 end
