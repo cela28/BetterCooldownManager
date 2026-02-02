@@ -66,7 +66,8 @@ local function CreateCustomIcon(spellId)
     else
         customIcon:SetBackdropBorderColor(0, 0, 0, 1)
     end
-    customIcon:SetSize(CustomDB.IconSize, CustomDB.IconSize)
+    local iconWidth, iconHeight = BCDM:GetIconDimensions(CustomDB)
+    customIcon:SetSize(iconWidth, iconHeight)
     local anchorParent = CustomDB.Layout[2] == "NONE" and UIParent or _G[CustomDB.Layout[2]]
     customIcon:SetPoint(CustomDB.Layout[1], anchorParent, CustomDB.Layout[3], CustomDB.Layout[4], CustomDB.Layout[5])
     customIcon:RegisterEvent("SPELL_UPDATE_COOLDOWN")
@@ -119,7 +120,7 @@ local function CreateCustomIcon(spellId)
     customIcon.Icon:SetPoint("TOPLEFT", customIcon, "TOPLEFT", borderSize, -borderSize)
     customIcon.Icon:SetPoint("BOTTOMRIGHT", customIcon, "BOTTOMRIGHT", -borderSize, borderSize)
     local iconZoom = BCDM.db.profile.CooldownManager.General.IconZoom * 0.5
-    customIcon.Icon:SetTexCoord(iconZoom, 1 - iconZoom, iconZoom, 1 - iconZoom)
+    BCDM:ApplyIconTexCoord(customIcon.Icon, iconWidth, iconHeight, iconZoom)
     customIcon.Icon:SetTexture(C_Spell.GetSpellInfo(spellId).iconID)
 
     return customIcon
@@ -187,7 +188,7 @@ local function LayoutAdditionalCustomCooldownViewer()
 
     CreateCustomIcons(AdditionalCustomCooldownViewerIcons)
 
-    local iconSize = CustomDB.IconSize
+    local iconWidth, iconHeight = BCDM:GetIconDimensions(CustomDB)
     local iconSpacing = CustomDB.Spacing
 
     -- Calculate and set container size first
@@ -199,11 +200,11 @@ local function LayoutAdditionalCustomCooldownViewer()
 
         local totalWidth, totalHeight = 0, 0
         if useCenteredLayout or growthDirection == "RIGHT" or growthDirection == "LEFT" then
-            totalWidth = (#AdditionalCustomCooldownViewerIcons * iconSize) + ((#AdditionalCustomCooldownViewerIcons - 1) * iconSpacing)
-            totalHeight = iconSize
+            totalWidth = (#AdditionalCustomCooldownViewerIcons * iconWidth) + ((#AdditionalCustomCooldownViewerIcons - 1) * iconSpacing)
+            totalHeight = iconHeight
         elseif growthDirection == "UP" or growthDirection == "DOWN" then
-            totalWidth = iconSize
-            totalHeight = (#AdditionalCustomCooldownViewerIcons * iconSize) + ((#AdditionalCustomCooldownViewerIcons - 1) * iconSpacing)
+            totalWidth = iconWidth
+            totalHeight = (#AdditionalCustomCooldownViewerIcons * iconHeight) + ((#AdditionalCustomCooldownViewerIcons - 1) * iconSpacing)
         end
         BCDM.AdditionalCustomCooldownViewerContainer:SetSize(totalWidth, totalHeight)
     end
@@ -224,15 +225,15 @@ local function LayoutAdditionalCustomCooldownViewer()
     local useCenteredLayout = (point == "TOP" or point == "BOTTOM") and (growthDirection == "LEFT" or growthDirection == "RIGHT")
 
     if useCenteredLayout and #AdditionalCustomCooldownViewerIcons > 0 then
-        local totalWidth = (#AdditionalCustomCooldownViewerIcons * iconSize) + ((#AdditionalCustomCooldownViewerIcons - 1) * iconSpacing)
-        local startOffset = -(totalWidth / 2) + (iconSize / 2)
+        local totalWidth = (#AdditionalCustomCooldownViewerIcons * iconWidth) + ((#AdditionalCustomCooldownViewerIcons - 1) * iconSpacing)
+        local startOffset = -(totalWidth / 2) + (iconWidth / 2)
 
         for i, spellIcon in ipairs(AdditionalCustomCooldownViewerIcons) do
             spellIcon:SetParent(BCDM.AdditionalCustomCooldownViewerContainer)
-            spellIcon:SetSize(iconSize, iconSize)
+            spellIcon:SetSize(iconWidth, iconHeight)
             spellIcon:ClearAllPoints()
 
-            local xOffset = startOffset + ((i - 1) * (iconSize + iconSpacing))
+            local xOffset = startOffset + ((i - 1) * (iconWidth + iconSpacing))
             spellIcon:SetPoint("CENTER", BCDM.AdditionalCustomCooldownViewerContainer, "CENTER", xOffset, 0)
             ApplyCooldownText()
             spellIcon:Show()
@@ -240,7 +241,7 @@ local function LayoutAdditionalCustomCooldownViewer()
     else
         for i, spellIcon in ipairs(AdditionalCustomCooldownViewerIcons) do
             spellIcon:SetParent(BCDM.AdditionalCustomCooldownViewerContainer)
-            spellIcon:SetSize(iconSize, iconSize)
+            spellIcon:SetSize(iconWidth, iconHeight)
             spellIcon:ClearAllPoints()
 
             if i == 1 then

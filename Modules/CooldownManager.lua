@@ -204,12 +204,14 @@ local function StyleIcons()
     if not ShouldSkin() then return end
     local cooldownManagerSettings = BCDM.db.profile.CooldownManager
     for _, viewerName in ipairs(BCDM.CooldownManagerViewers) do
+        local viewerSettings = cooldownManagerSettings[BCDM.CooldownManagerViewerToDBViewer[viewerName]]
+        local iconWidth, iconHeight = BCDM:GetIconDimensions(viewerSettings)
         for _, childFrame in ipairs({_G[viewerName]:GetChildren()}) do
             if childFrame then
                 if childFrame.Icon then
                     BCDM:StripTextures(childFrame.Icon)
                     local iconZoomAmount = cooldownManagerSettings.General.IconZoom * 0.5
-                    childFrame.Icon:SetTexCoord(iconZoomAmount, 1 - iconZoomAmount, iconZoomAmount, 1 - iconZoomAmount)
+                    BCDM:ApplyIconTexCoord(childFrame.Icon, iconWidth, iconHeight, iconZoomAmount)
                 end
                 if childFrame.Cooldown then
                     local borderSize = cooldownManagerSettings.General.BorderSize
@@ -223,7 +225,7 @@ local function StyleIcons()
                 end
                 if childFrame.CooldownFlash then childFrame.CooldownFlash:SetAlpha(0) end
                 if childFrame.DebuffBorder then childFrame.DebuffBorder:SetAlpha(0) end
-                childFrame:SetSize(cooldownManagerSettings[BCDM.CooldownManagerViewerToDBViewer[viewerName]].IconSize, cooldownManagerSettings[BCDM.CooldownManagerViewerToDBViewer[viewerName]].IconSize)
+                childFrame:SetSize(iconWidth, iconHeight)
                 BCDM:AddBorder(childFrame)
                 if not childFrame.layoutIndex then childFrame:SetShown(false) end
             end
@@ -351,6 +353,8 @@ function BCDM:UpdateCooldownViewer(viewerType)
     -- if viewerType == "BuffBar" then BCDM:UpdateBuffBarStyle() return end
     local cooldownManagerSettings = BCDM.db.profile.CooldownManager
     local cooldownViewerFrame = _G[BCDM.DBViewerToCooldownManagerViewer[viewerType]]
+    local viewerSettings = cooldownManagerSettings[viewerType]
+    local iconWidth, iconHeight = BCDM:GetIconDimensions(viewerSettings)
     if viewerType == "Custom" then BCDM:UpdateCustomCooldownViewer() return end
     if viewerType == "AdditionalCustom" then BCDM:UpdateAdditionalCustomCooldownViewer() return end
     if viewerType == "Item" then BCDM:UpdateCustomItemBar() return end
@@ -363,7 +367,7 @@ function BCDM:UpdateCooldownViewer(viewerType)
         if childFrame then
             if childFrame.Icon and ShouldSkin() then
                 BCDM:StripTextures(childFrame.Icon)
-                childFrame.Icon:SetTexCoord(cooldownManagerSettings.General.IconZoom, 1 - cooldownManagerSettings.General.IconZoom, cooldownManagerSettings.General.IconZoom, 1 - cooldownManagerSettings.General.IconZoom)
+                BCDM:ApplyIconTexCoord(childFrame.Icon, iconWidth, iconHeight, cooldownManagerSettings.General.IconZoom)
             end
             if childFrame.Cooldown then
                 childFrame.Cooldown:ClearAllPoints()
@@ -375,7 +379,7 @@ function BCDM:UpdateCooldownViewer(viewerType)
                 childFrame.Cooldown:SetSwipeTexture("Interface\\Buttons\\WHITE8X8")
             end
             if childFrame.CooldownFlash then childFrame.CooldownFlash:SetAlpha(0) end
-            childFrame:SetSize(cooldownManagerSettings[viewerType].IconSize, cooldownManagerSettings[viewerType].IconSize)
+            childFrame:SetSize(iconWidth, iconHeight)
         end
     end
 

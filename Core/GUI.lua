@@ -1503,12 +1503,14 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
         layoutContainer:AddChild(spacingSlider)
     end
 
+    local isPrimaryViewer = viewerType == "Essential" or viewerType == "Utility" or viewerType == "Buffs"
+
     local xOffsetSlider = AG:Create("Slider")
     xOffsetSlider:SetLabel("X Offset")
     xOffsetSlider:SetValue(BCDM.db.profile.CooldownManager[viewerType].Layout[hasAnchorParent and 4 or 3])
     xOffsetSlider:SetSliderValues(-3000, 3000, 0.1)
     xOffsetSlider:SetCallback("OnValueChanged", function(self, _, value) BCDM.db.profile.CooldownManager[viewerType].Layout[hasAnchorParent and 4 or 3] = value BCDM:UpdateCooldownViewer(viewerType) end)
-    xOffsetSlider:SetRelativeWidth(isCustomViewer and 0.25 or 0.33)
+    xOffsetSlider:SetRelativeWidth(isPrimaryViewer and 0.5 or 0.33)
     layoutContainer:AddChild(xOffsetSlider)
 
     local yOffsetSlider = AG:Create("Slider")
@@ -1516,26 +1518,88 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
     yOffsetSlider:SetValue(BCDM.db.profile.CooldownManager[viewerType].Layout[hasAnchorParent and 5 or 4])
     yOffsetSlider:SetSliderValues(-3000, 3000, 0.1)
     yOffsetSlider:SetCallback("OnValueChanged", function(self, _, value) BCDM.db.profile.CooldownManager[viewerType].Layout[hasAnchorParent and 5 or 4] = value BCDM:UpdateCooldownViewer(viewerType) end)
-    yOffsetSlider:SetRelativeWidth(isCustomViewer and 0.25 or 0.33)
+    yOffsetSlider:SetRelativeWidth(isPrimaryViewer and 0.5 or 0.33)
     layoutContainer:AddChild(yOffsetSlider)
+
+    local iconContainer = AG:Create("InlineGroup")
+    iconContainer:SetTitle("Icon Settings")
+    iconContainer:SetFullWidth(true)
+    iconContainer:SetLayout("Flow")
+    ScrollFrame:AddChild(iconContainer)
+
+    local keepAspectCheckbox = AG:Create("CheckBox")
+    keepAspectCheckbox:SetLabel("Keep Aspect Ratio")
+    keepAspectCheckbox:SetValue(BCDM.db.profile.CooldownManager[viewerType].KeepAspectRatio ~= false)
+    keepAspectCheckbox:SetRelativeWidth(1)
+    iconContainer:AddChild(keepAspectCheckbox)
 
     local iconSizeSlider = AG:Create("Slider")
     iconSizeSlider:SetLabel("Icon Size")
     iconSizeSlider:SetValue(BCDM.db.profile.CooldownManager[viewerType].IconSize)
     iconSizeSlider:SetSliderValues(16, 128, 0.1)
-    iconSizeSlider:SetCallback("OnValueChanged", function(self, _, value) BCDM.db.profile.CooldownManager[viewerType].IconSize = value BCDM:UpdateCooldownViewer(viewerType) end)
-    iconSizeSlider:SetRelativeWidth(isCustomViewer and 0.25 or 0.33)
-    layoutContainer:AddChild(iconSizeSlider)
+    iconSizeSlider:SetCallback("OnValueChanged", function(self, _, value)
+        BCDM.db.profile.CooldownManager[viewerType].IconSize = value
+        BCDM:UpdateCooldownViewer(viewerType)
+    end)
+    iconSizeSlider:SetRelativeWidth(0.3333)
+    iconContainer:AddChild(iconSizeSlider)
+
+    local iconWidthSlider = AG:Create("Slider")
+    iconWidthSlider:SetLabel("Icon Width")
+    iconWidthSlider:SetValue(BCDM.db.profile.CooldownManager[viewerType].IconWidth or BCDM.db.profile.CooldownManager[viewerType].IconSize)
+    iconWidthSlider:SetSliderValues(16, 128, 0.1)
+    iconWidthSlider:SetCallback("OnValueChanged", function(self, _, value)
+        BCDM.db.profile.CooldownManager[viewerType].IconWidth = value
+        BCDM:UpdateCooldownViewer(viewerType)
+    end)
+    iconWidthSlider:SetRelativeWidth(0.3333)
+    iconContainer:AddChild(iconWidthSlider)
+
+    local iconHeightSlider = AG:Create("Slider")
+    iconHeightSlider:SetLabel("Icon Height")
+    iconHeightSlider:SetValue(BCDM.db.profile.CooldownManager[viewerType].IconHeight or BCDM.db.profile.CooldownManager[viewerType].IconSize)
+    iconHeightSlider:SetSliderValues(16, 128, 0.1)
+    iconHeightSlider:SetCallback("OnValueChanged", function(self, _, value)
+        BCDM.db.profile.CooldownManager[viewerType].IconHeight = value
+        BCDM:UpdateCooldownViewer(viewerType)
+    end)
+    iconHeightSlider:SetRelativeWidth(0.3333)
+    iconContainer:AddChild(iconHeightSlider)
+
 
     if viewerType == "Essential" or viewerType == "Utility" or viewerType == "Buffs" then
-        local infoTag = CreateInformationTag(layoutContainer, "Updates To Sizes will be applied on closing the |cFF8080FFBetter|rCooldownManager Configuration Window.")
+        local infoTag = CreateInformationTag(iconContainer, "Size changes will be applied on closing the |cFF8080FFBetter|rCooldownManager Configuration Window.", "LEFT")
         infoTag:SetRelativeWidth(0.7)
         local forceUpdateButton = AG:Create("Button")
-        forceUpdateButton:SetText("Force Update")
+        forceUpdateButton:SetText("Update")
         forceUpdateButton:SetRelativeWidth(0.3)
         forceUpdateButton:SetCallback("OnClick", function() LEMO:ApplyChanges() end)
-        layoutContainer:AddChild(forceUpdateButton)
+        iconContainer:AddChild(forceUpdateButton)
     end
+
+    local function UpdateIconSizeControlState()
+        local keepAspect = BCDM.db.profile.CooldownManager[viewerType].KeepAspectRatio ~= false
+        DeepDisable(iconSizeSlider, not keepAspect)
+        DeepDisable(iconWidthSlider, keepAspect)
+        DeepDisable(iconHeightSlider, keepAspect)
+    end
+
+    keepAspectCheckbox:SetCallback("OnValueChanged", function(self, _, value)
+        local viewerDB = BCDM.db.profile.CooldownManager[viewerType]
+        viewerDB.KeepAspectRatio = value
+        local fallbackSize = viewerDB.IconSize or viewerDB.IconWidth or viewerDB.IconHeight or 32
+        if value then
+            viewerDB.IconSize = viewerDB.IconWidth or viewerDB.IconHeight or fallbackSize
+        else
+            viewerDB.IconWidth = viewerDB.IconWidth or fallbackSize
+            viewerDB.IconHeight = viewerDB.IconHeight or fallbackSize
+        end
+        UpdateIconSizeControlState()
+        BCDM:UpdateCooldownViewer(viewerType)
+        LEMO:ApplyChanges()
+    end)
+
+    UpdateIconSizeControlState()
 
     if isCustomViewer then
         local frameStrataDropdown = AG:Create("Dropdown")
@@ -1543,7 +1607,7 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
         frameStrataDropdown:SetList({["BACKGROUND"] = "Background", ["LOW"] = "Low", ["MEDIUM"] = "Medium", ["HIGH"] = "High", ["DIALOG"] = "Dialog", ["FULLSCREEN"] = "Fullscreen", ["FULLSCREEN_DIALOG"] = "Fullscreen Dialog", ["TOOLTIP"] = "Tooltip"}, {"BACKGROUND", "LOW", "MEDIUM", "HIGH", "DIALOG", "FULLSCREEN", "FULLSCREEN_DIALOG", "TOOLTIP"})
         frameStrataDropdown:SetValue(BCDM.db.profile.CooldownManager[viewerType].FrameStrata)
         frameStrataDropdown:SetCallback("OnValueChanged", function(self, _, value) BCDM.db.profile.CooldownManager[viewerType].FrameStrata = value BCDM:UpdateCooldownViewer(viewerType) end)
-        frameStrataDropdown:SetRelativeWidth(0.25)
+        frameStrataDropdown:SetRelativeWidth(0.33)
         layoutContainer:AddChild(frameStrataDropdown)
     end
 

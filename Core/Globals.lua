@@ -104,7 +104,7 @@ function BCDM:AddBorder(parentFrame)
     end
 end
 
- function BCDM:StripTextures(textureToStrip)
+function BCDM:StripTextures(textureToStrip)
     if not textureToStrip then return end
     if textureToStrip.GetMaskTexture then
         local i = 1
@@ -124,6 +124,66 @@ end
             end
         end
     end
+end
+
+function BCDM:GetIconDimensions(viewerDB)
+    if not viewerDB then return 0, 0, true end
+    local keepAspect = viewerDB.KeepAspectRatio
+    if keepAspect == nil then
+        keepAspect = true
+    end
+
+    local fallbackSize = viewerDB.IconSize or viewerDB.IconWidth or viewerDB.IconHeight or 32
+    if keepAspect then
+        return fallbackSize, fallbackSize, true
+    end
+
+    local iconWidth = viewerDB.IconWidth or fallbackSize
+    local iconHeight = viewerDB.IconHeight or fallbackSize
+    return iconWidth, iconHeight, false
+end
+
+function BCDM:GetIconTexCoords(width, height, baseZoom)
+    local zoom = baseZoom or 0
+    if zoom < 0 then zoom = 0 end
+    if zoom > 0.49 then zoom = 0.49 end
+
+    local left = zoom
+    local right = 1 - zoom
+    local top = zoom
+    local bottom = 1 - zoom
+
+    if not width or not height or width <= 0 or height <= 0 then
+        return left, right, top, bottom
+    end
+
+    local aspect = width / height
+    local uSpan = right - left
+    local vSpan = bottom - top
+
+    if aspect > 1 then
+        local targetVSpan = uSpan / aspect
+        local extra = (vSpan - targetVSpan) / 2
+        if extra > 0 then
+            top = top + extra
+            bottom = bottom - extra
+        end
+    elseif aspect < 1 then
+        local targetUSpan = vSpan * aspect
+        local extra = (uSpan - targetUSpan) / 2
+        if extra > 0 then
+            left = left + extra
+            right = right - extra
+        end
+    end
+
+    return left, right, top, bottom
+end
+
+function BCDM:ApplyIconTexCoord(texture, width, height, baseZoom)
+    if not texture then return end
+    local left, right, top, bottom = BCDM:GetIconTexCoords(width, height, baseZoom)
+    texture:SetTexCoord(left, right, top, bottom)
 end
 
 function BCDM:Init()
