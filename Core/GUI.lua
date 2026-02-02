@@ -306,6 +306,304 @@ local function CreateCooldownTextSettings(containerParent)
     return cooldownTextContainer
 end
 
+local function CreateCustomGlowSettings(parentContainer)
+    local glowSettings = BCDM:GetCustomGlowSettings()
+    if not glowSettings then
+        return
+    end
+
+    local glowContainer = AG:Create("InlineGroup")
+    glowContainer:SetTitle("Custom Glows")
+    glowContainer:SetFullWidth(true)
+    glowContainer:SetLayout("Flow")
+    parentContainer:AddChild(glowContainer)
+
+    local enableGlow = AG:Create("CheckBox")
+    enableGlow:SetLabel("Enable Custom Glow")
+    enableGlow:SetValue(glowSettings.Enabled)
+    enableGlow:SetRelativeWidth(0.5)
+    glowContainer:AddChild(enableGlow)
+
+    local glowType = AG:Create("Dropdown")
+    glowType:SetLabel("Glow Type")
+    glowType:SetList({
+        Pixel = "Pixel Glow",
+        Autocast = "Autocast Glow",
+        Proc = "Proc Glow",
+        Button = "Action Button Glow",
+    })
+    glowType:SetValue(glowSettings.Type or "Pixel")
+    glowType:SetRelativeWidth(0.5)
+    glowContainer:AddChild(glowType)
+
+    local dynamicGlowSettingsGroup = AG:Create("InlineGroup")
+    dynamicGlowSettingsGroup:SetTitle("Glow Options")
+    dynamicGlowSettingsGroup:SetLayout("Flow")
+    dynamicGlowSettingsGroup:SetFullWidth(true)
+    glowContainer:AddChild(dynamicGlowSettingsGroup)
+
+    local function RefreshGlowSettingsState()
+        local disabled = not glowSettings.Enabled
+        glowType:SetDisabled(disabled)
+        DeepDisable(dynamicGlowSettingsGroup, disabled)
+    end
+
+    local function AddCustomGlowOptions()
+        dynamicGlowSettingsGroup:ReleaseChildren()
+
+        if glowSettings.Type == "Proc" then
+            local startAnim = AG:Create("CheckBox")
+            startAnim:SetRelativeWidth(0.33)
+            startAnim:SetValue(glowSettings.Proc.StartAnim)
+            startAnim:SetLabel("Start Animation")
+            startAnim:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Proc.StartAnim = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(startAnim)
+
+            local duration = AG:Create("Slider")
+            duration:SetRelativeWidth(0.33)
+            duration:SetValue(glowSettings.Proc.Duration)
+            duration:SetLabel("Duration")
+            duration:SetSliderValues(0.1, 5, 0.05)
+            duration:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Proc.Duration = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(duration)
+
+            local xOffset = AG:Create("Slider")
+            xOffset:SetRelativeWidth(0.33)
+            xOffset:SetValue(glowSettings.Proc.XOffset)
+            xOffset:SetLabel("X Offset")
+            xOffset:SetSliderValues(-30, 30, 1)
+            xOffset:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Proc.XOffset = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(xOffset)
+
+            local yOffset = AG:Create("Slider")
+            yOffset:SetRelativeWidth(0.33)
+            yOffset:SetValue(glowSettings.Proc.YOffset)
+            yOffset:SetLabel("Y Offset")
+            yOffset:SetSliderValues(-30, 30, 1)
+            yOffset:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Proc.YOffset = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(yOffset)
+
+            local glowColor = AG:Create("ColorPicker")
+            glowColor:SetRelativeWidth(0.33)
+            glowColor:SetLabel("Glow Color")
+            glowColor:SetHasAlpha(true)
+            glowColor:SetColor(unpack(glowSettings.Proc.Color))
+            glowColor:SetCallback("OnValueChanged", function(_, _, r, g, b, a)
+                glowSettings.Proc.Color = { r, g, b, a }
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(glowColor)
+        elseif glowSettings.Type == "Autocast" then
+            local numParticles = AG:Create("Slider")
+            numParticles:SetRelativeWidth(0.33)
+            numParticles:SetValue(glowSettings.Autocast.Particles)
+            numParticles:SetLabel("Particles")
+            numParticles:SetSliderValues(1, 30, 1)
+            numParticles:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Autocast.Particles = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(numParticles)
+
+            local frequency = AG:Create("Slider")
+            frequency:SetRelativeWidth(0.33)
+            frequency:SetValue(glowSettings.Autocast.Frequency)
+            frequency:SetLabel("Frequency")
+            frequency:SetSliderValues(-3, 3, 0.05)
+            frequency:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Autocast.Frequency = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(frequency)
+
+            local scale = AG:Create("Slider")
+            scale:SetRelativeWidth(0.33)
+            scale:SetValue(glowSettings.Autocast.Scale)
+            scale:SetLabel("Scale")
+            scale:SetSliderValues(0.01, 5, 0.01)
+            scale:SetIsPercent(true)
+            scale:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Autocast.Scale = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(scale)
+
+            local xOffset = AG:Create("Slider")
+            xOffset:SetRelativeWidth(0.33)
+            xOffset:SetValue(glowSettings.Autocast.XOffset)
+            xOffset:SetLabel("X Offset")
+            xOffset:SetSliderValues(-30, 30, 1)
+            xOffset:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Autocast.XOffset = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(xOffset)
+
+            local yOffset = AG:Create("Slider")
+            yOffset:SetRelativeWidth(0.33)
+            yOffset:SetValue(glowSettings.Autocast.YOffset)
+            yOffset:SetLabel("Y Offset")
+            yOffset:SetSliderValues(-30, 30, 1)
+            yOffset:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Autocast.YOffset = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(yOffset)
+
+            local glowColor = AG:Create("ColorPicker")
+            glowColor:SetRelativeWidth(0.33)
+            glowColor:SetLabel("Glow Color")
+            glowColor:SetHasAlpha(true)
+            glowColor:SetColor(unpack(glowSettings.Autocast.Color))
+            glowColor:SetCallback("OnValueChanged", function(_, _, r, g, b, a)
+                glowSettings.Autocast.Color = { r, g, b, a }
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(glowColor)
+        elseif glowSettings.Type == "Pixel" then
+            local numLines = AG:Create("Slider")
+            numLines:SetRelativeWidth(0.33)
+            numLines:SetValue(glowSettings.Pixel.Lines)
+            numLines:SetLabel("Lines")
+            numLines:SetSliderValues(1, 30, 1)
+            numLines:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Pixel.Lines = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(numLines)
+
+            local frequency = AG:Create("Slider")
+            frequency:SetRelativeWidth(0.33)
+            frequency:SetValue(glowSettings.Pixel.Frequency)
+            frequency:SetLabel("Frequency")
+            frequency:SetSliderValues(-3, 3, 0.05)
+            frequency:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Pixel.Frequency = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(frequency)
+
+            local length = AG:Create("Slider")
+            length:SetRelativeWidth(0.33)
+            length:SetValue(glowSettings.Pixel.Length)
+            length:SetLabel("Length")
+            length:SetSliderValues(1, 15, 0.05)
+            length:SetIsPercent(true)
+            length:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Pixel.Length = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(length)
+
+            local thickness = AG:Create("Slider")
+            thickness:SetRelativeWidth(0.33)
+            thickness:SetValue(glowSettings.Pixel.Thickness)
+            thickness:SetLabel("Thickness")
+            thickness:SetSliderValues(1, 15, 0.05)
+            thickness:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Pixel.Thickness = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(thickness)
+
+            local xOffset = AG:Create("Slider")
+            xOffset:SetRelativeWidth(0.33)
+            xOffset:SetValue(glowSettings.Pixel.XOffset)
+            xOffset:SetLabel("X Offset")
+            xOffset:SetSliderValues(-30, 30, 1)
+            xOffset:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Pixel.XOffset = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(xOffset)
+
+            local yOffset = AG:Create("Slider")
+            yOffset:SetRelativeWidth(0.33)
+            yOffset:SetValue(glowSettings.Pixel.YOffset)
+            yOffset:SetLabel("Y Offset")
+            yOffset:SetSliderValues(-30, 30, 1)
+            yOffset:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Pixel.YOffset = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(yOffset)
+
+            local glowColor = AG:Create("ColorPicker")
+            glowColor:SetRelativeWidth(0.33)
+            glowColor:SetLabel("Glow Color")
+            glowColor:SetHasAlpha(true)
+            glowColor:SetColor(unpack(glowSettings.Pixel.Color))
+            glowColor:SetCallback("OnValueChanged", function(_, _, r, g, b, a)
+                glowSettings.Pixel.Color = { r, g, b, a }
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(glowColor)
+
+            local border = AG:Create("CheckBox")
+            border:SetRelativeWidth(0.33)
+            border:SetValue(glowSettings.Pixel.Border)
+            border:SetLabel("Border")
+            border:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Pixel.Border = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(border)
+        elseif glowSettings.Type == "Button" then
+            local frequency = AG:Create("Slider")
+            frequency:SetRelativeWidth(0.33)
+            frequency:SetValue(glowSettings.Button.Frequency)
+            frequency:SetLabel("Frequency")
+            frequency:SetSliderValues(-3, 3, 0.05)
+            frequency:SetCallback("OnValueChanged", function(_, _, value)
+                glowSettings.Button.Frequency = value
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(frequency)
+
+            local glowColor = AG:Create("ColorPicker")
+            glowColor:SetRelativeWidth(0.33)
+            glowColor:SetLabel("Glow Color")
+            glowColor:SetHasAlpha(true)
+            glowColor:SetColor(unpack(glowSettings.Button.Color))
+            glowColor:SetCallback("OnValueChanged", function(_, _, r, g, b, a)
+                glowSettings.Button.Color = { r, g, b, a }
+                BCDM:RefreshCustomGlows()
+            end)
+            dynamicGlowSettingsGroup:AddChild(glowColor)
+        end
+
+        RefreshGlowSettingsState()
+        glowContainer:DoLayout()
+    end
+
+    enableGlow:SetCallback("OnValueChanged", function(_, _, value)
+        glowSettings.Enabled = value
+        RefreshGlowSettingsState()
+        BCDM:RefreshCustomGlows()
+    end)
+
+    glowType:SetCallback("OnValueChanged", function(_, _, value)
+        glowSettings.Type = value
+        AddCustomGlowOptions()
+        BCDM:RefreshCustomGlows()
+    end)
+
+    AddCustomGlowOptions()
+    RefreshGlowSettingsState()
+end
+
 local function CreateGeneralSettings(parentContainer)
     local GeneralDB = BCDM.db.profile.General
     local CooldownManagerDB = BCDM.db.profile.CooldownManager
@@ -529,6 +827,8 @@ local function CreateGlobalSettings(parentContainer)
     borderSizeSlider:SetCallback("OnValueChanged", function(_, _, value) CooldownManagerDB.General.BorderSize = value BCDM:UpdateBCDM() end)
     borderSizeSlider:SetRelativeWidth(0.5)
     globalSettingsContainer:AddChild(borderSizeSlider)
+
+    CreateCustomGlowSettings(globalSettingsContainer)
 
     local FontContainer = AG:Create("InlineGroup")
     FontContainer:SetTitle("Font Settings")
