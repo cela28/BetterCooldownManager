@@ -29,7 +29,6 @@ local PowerNames = {
     [18] = "Pain",
     [19] = "Essence",
     [20] = "Maelstrom",
-    ["MANA"] = "Mana (S.Priest & E.Shaman)",
     ["STAGGER"] = "Stagger",
     ["SOUL"] = "Soul",
     ["RUNE_RECHARGE"] = "Rune on Cooldown",
