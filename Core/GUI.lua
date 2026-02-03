@@ -981,9 +981,8 @@ local function CreateEditModeManagerSettings(parentContainer)
         raidLayoutDropdown[i]:SetList(AvailableLayouts)
         raidLayoutDropdown[i]:SetText(EditModeManagerDB.RaidLayouts[layoutType])
         raidLayoutDropdown[i]:SetRelativeWidth(0.5)
-        raidLayoutDropdown[i]:SetCallback("OnEnterPressed", function(self)
-            local input = self:GetText()
-            EditModeManagerDB.RaidLayouts[layoutType] = input
+        raidLayoutDropdown[i]:SetCallback("OnValueChanged", function(self, _, value)
+            EditModeManagerDB.RaidLayouts[layoutType] = AvailableLayouts[value]
             BCDM:UpdateLayout()
             BCDM:UpdateBCDM()
         end)

@@ -7,6 +7,7 @@ BCDM.EditModeLayoutsLayouts = {}
 function BCDM:GetLayouts()
     local layoutInfo = C_EditMode.GetLayouts()
     for i, info in pairs(layoutInfo.layouts) do
+        if BCDM.EditModeLayoutsLayouts[info.layoutName] then return end
         table.insert(BCDM.EditModeLayoutsLayouts, info.layoutName)
     end
     return BCDM.EditModeLayoutsLayouts
