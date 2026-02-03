@@ -1412,6 +1412,35 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
         toggleContainer:AddChild(centerBuffsCheckbox)
     end
 
+    if viewerType == "Essential" or viewerType == "Utility" then
+        local toggleContainer = AG:Create("InlineGroup")
+        toggleContainer:SetTitle(viewerType .. " Settings")
+        toggleContainer:SetFullWidth(true)
+        toggleContainer:SetLayout("Flow")
+        ScrollFrame:AddChild(toggleContainer)
+
+        local centerHorizontallyCheckbox = AG:Create("CheckBox")
+        centerHorizontallyCheckbox:SetLabel("Center Second Row (Horizontally) - |cFFFF4040Reload|r Required.")
+        centerHorizontallyCheckbox:SetValue(BCDM.db.profile.CooldownManager[viewerType].CenterHorizontally)
+        centerHorizontallyCheckbox:SetCallback("OnValueChanged", function(_, _, value)
+            BCDM.db.profile.CooldownManager[viewerType].CenterHorizontally = value
+            StaticPopupDialogs["BCDM_RELOAD_UI"] = {
+                text = "You must reload to apply this change, do you want to reload now?",
+                button1 = "Reload Now",
+                button2 = "Later",
+                showAlert = true,
+                OnAccept = function() C_UI.Reload() end,
+                OnCancel = function() centerHorizontallyCheckbox:SetValue(BCDM.db.profile.CooldownManager[viewerType].CenterHorizontally) toggleContainer:DoLayout() end,
+                timeout = 0,
+                whileDead = true,
+                hideOnEscape = true,
+            }
+            StaticPopup_Show("BCDM_RELOAD_UI")
+        end)
+        centerHorizontallyCheckbox:SetRelativeWidth(1)
+        toggleContainer:AddChild(centerHorizontallyCheckbox)
+    end
+
     -- local foregroundColourPicker;
 
     -- if viewerType == "BuffBar" then

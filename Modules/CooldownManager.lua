@@ -295,9 +295,7 @@ local function CenterBuffs()
         end
     end
 
-    table.sort(visibleBuffIcons, function(a, b)
-        return (a.layoutIndex or 0) < (b.layoutIndex or 0)
-    end)
+    table.sort(visibleBuffIcons, function(a, b) return (a.layoutIndex or 0) < (b.layoutIndex or 0) end)
 
     local visibleCount = #visibleBuffIcons
     if visibleCount == 0 then return 0 end
@@ -329,6 +327,95 @@ local function SetupCenterBuffs()
     end
 end
 
+local centerWrappedUpdateThrottle = 0.05
+local nextCenterWrappedUpdate = 0
+
+local function CenterWrappedRows(viewerName)
+    local viewer = _G[viewerName]
+    if not viewer then return end
+
+    local iconLimit = viewer.iconLimit
+    if not iconLimit or iconLimit <= 0 then return end
+
+    local visibleIcons = {}
+    for _, childFrame in ipairs({ viewer:GetChildren() }) do
+        if childFrame and childFrame:IsShown() and childFrame.layoutIndex then
+            table.insert(visibleIcons, childFrame)
+        end
+    end
+
+    table.sort(visibleIcons, function(a, b) return (a.layoutIndex or 0) < (b.layoutIndex or 0) end)
+
+    local visibleCount = #visibleIcons
+    if visibleCount == 0 then return end
+
+    local iconWidth = visibleIcons[1]:GetWidth()
+    local iconHeight = visibleIcons[1]:GetHeight()
+    local iconSpacing = viewer.childXPadding or 0
+    local rowSpacing = viewer.childYPadding or 0
+    local rowHeight = (iconHeight > 0 and iconHeight or iconWidth) + rowSpacing
+
+    local basePoint, _, _, _, baseY = visibleIcons[1]:GetPoint(1)
+    if not basePoint or not baseY then return end
+    local anchorPoint = "TOP"
+    local relativePoint = "TOP"
+    local yDirection = -1
+    if basePoint and basePoint:find("BOTTOM") then
+        anchorPoint = "BOTTOM"
+        relativePoint = "BOTTOM"
+        yDirection = 1
+    end
+
+    local rowCount = math.ceil(visibleCount / iconLimit)
+    for rowIndex = 1, rowCount do
+        local rowStart = (rowIndex - 1) * iconLimit + 1
+        local rowEnd = math.min(rowStart + iconLimit - 1, visibleCount)
+        local rowIcons = rowEnd - rowStart + 1
+        local rowWidth = (rowIcons * iconWidth) + ((rowIcons - 1) * iconSpacing)
+        local startX = -rowWidth / 2 + iconWidth / 2
+        local rowY = baseY + yDirection * (rowIndex - 1) * rowHeight
+
+        for index = rowStart, rowEnd do
+            local iconFrame = visibleIcons[index]
+            iconFrame:ClearAllPoints()
+            iconFrame:SetPoint(anchorPoint, viewer, relativePoint, startX + (index - rowStart) * (iconWidth + iconSpacing), rowY)
+        end
+    end
+end
+
+local function CenterWrappedIcons()
+    local currentTime = GetTime()
+    if currentTime < nextCenterWrappedUpdate then return end
+    nextCenterWrappedUpdate = currentTime + centerWrappedUpdateThrottle
+
+    local cooldownManagerSettings = BCDM.db.profile.CooldownManager
+    local essentialSettings = cooldownManagerSettings.Essential
+    local utilitySettings = cooldownManagerSettings.Utility
+
+    if essentialSettings and essentialSettings.CenterHorizontally then
+        CenterWrappedRows("EssentialCooldownViewer")
+    end
+
+    if utilitySettings and utilitySettings.CenterHorizontally then
+        CenterWrappedRows("UtilityCooldownViewer")
+    end
+end
+
+local centerWrappedEventFrame = CreateFrame("Frame")
+
+local function SetupCenterHorizontalIcons()
+    local cooldownManagerSettings = BCDM.db.profile.CooldownManager
+    local enableEssential = cooldownManagerSettings.Essential.CenterHorizontally
+    local enableUtility = cooldownManagerSettings.Utility.CenterHorizontally
+
+    if enableEssential or enableUtility then
+        centerWrappedEventFrame:SetScript("OnUpdate", CenterWrappedIcons)
+    else
+        centerWrappedEventFrame:SetScript("OnUpdate", nil)
+        centerWrappedEventFrame:Hide()
+    end
+end
+
 function BCDM:SkinCooldownManager()
     local LEMO = BCDM.LEMO
     LEMO:LoadLayouts()
@@ -338,6 +425,7 @@ function BCDM:SkinCooldownManager()
     Position()
     SetHooks()
     SetupCenterBuffs()
+    SetupCenterHorizontalIcons()
     for _, viewerName in ipairs(BCDM.CooldownManagerViewers) do
         C_Timer.After(0.1, function() ApplyCooldownText(viewerName) end)
     end
@@ -361,6 +449,7 @@ function BCDM:UpdateCooldownViewer(viewerType)
     if viewerType == "Trinket" then BCDM:UpdateTrinketBar() return end
     if viewerType == "ItemSpell" then BCDM:UpdateCustomItemsSpellsBar() return end
     if viewerType == "Buffs" then SetupCenterBuffs() end
+    if viewerType == "Essential" or viewerType == "Utility" then SetupCenterHorizontalIcons() end
 
 
     for _, childFrame in ipairs({cooldownViewerFrame:GetChildren()}) do
