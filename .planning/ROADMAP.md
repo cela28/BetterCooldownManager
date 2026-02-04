@@ -18,13 +18,13 @@ Plans:
 Plans:
 - [x] 02-01-PLAN.md - Create IsSpellOnCooldown function with GCD filtering and charge spell handling
 
-### Phase 3: Alpha-Based Hiding
+### Phase 3: Alpha-Based Hiding ✓
 **Goal:** Hide icons when their spell is off cooldown
-**Status:** Planned
-**Plans:** 1 plan
+**Status:** Complete (2026-02-04)
+**Plans:** 1/1 complete
 
 Plans:
-- [ ] 03-01-PLAN.md - Create HideWhenOffCooldown module with RefreshLayout hooks and event-driven visibility
+- [x] 03-01-PLAN.md - Create HideWhenOffCooldown module with RefreshLayout hooks and event-driven visibility
 
 ### Phase 4: Layout Collapse
 **Goal:** Make remaining icons shift to fill gaps
