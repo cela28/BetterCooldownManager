@@ -12,11 +12,10 @@ Plans:
 
 ### Phase 2: Cooldown State Detection
 **Goal:** Reliably detect when a spell is on/off cooldown
+**Plans:** 1 plan
 
-Tasks:
-- Create `IsSpellOnCooldown(spellID)` function with pcall protection
-- Handle charge spells correctly (check if any charge is recharging)
-- Filter out GCD-only states (don't hide during GCD)
+Plans:
+- [ ] 02-01-PLAN.md - Create IsSpellOnCooldown function with GCD filtering and charge spell handling
 
 ### Phase 3: Alpha-Based Hiding
 **Goal:** Hide icons when their spell is off cooldown
