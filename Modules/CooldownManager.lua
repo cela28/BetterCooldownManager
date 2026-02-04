@@ -290,6 +290,10 @@ function BCDM:SkinCooldownManager()
     SetupCenterBuffs()
     if EssentialCooldownViewer and EssentialCooldownViewer.RefreshLayout then hooksecurefunc(EssentialCooldownViewer, "RefreshLayout", function() CenterWrappedIcons() end) end
     if UtilityCooldownViewer and UtilityCooldownViewer.RefreshLayout then hooksecurefunc(UtilityCooldownViewer, "RefreshLayout", function() CenterWrappedIcons() end) end
+
+    -- Initialize HideWhenOffCooldown feature (Phase 3 implementation)
+    BCDM:EnableHideWhenOffCooldown()
+
     for _, viewerName in ipairs(BCDM.CooldownManagerViewers) do
         C_Timer.After(0.1, function() ApplyCooldownText(viewerName) end)
     end
