@@ -20,12 +20,11 @@ Plans:
 
 ### Phase 3: Alpha-Based Hiding
 **Goal:** Hide icons when their spell is off cooldown
+**Status:** Planned
+**Plans:** 1 plan
 
-Tasks:
-- Hook into icon update cycle
-- Check bar's `hideWhenOffCooldown` setting
-- Set icon alpha to 0 when spell off cooldown
-- Set icon alpha to normal when spell on cooldown
+Plans:
+- [ ] 03-01-PLAN.md - Create HideWhenOffCooldown module with RefreshLayout hooks and event-driven visibility
 
 ### Phase 4: Layout Collapse
 **Goal:** Make remaining icons shift to fill gaps
