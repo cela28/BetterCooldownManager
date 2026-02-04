@@ -2,12 +2,13 @@
 
 ## Milestone 1: Core Feature (v1.0)
 
-### Phase 1: Settings Infrastructure
+### Phase 1: Settings Infrastructure ✓
 **Goal:** Add the per-bar setting to enable/disable hiding
-**Plans:** 1 plan
+**Status:** Complete (2026-02-04)
+**Plans:** 1/1 complete
 
 Plans:
-- [ ] 01-01-PLAN.md - Add HideWhenOffCooldown setting to Defaults.lua and getter/setter functions to Globals.lua
+- [x] 01-01-PLAN.md - Add HideWhenOffCooldown setting to Defaults.lua and getter/setter functions to Globals.lua
 
 ### Phase 2: Cooldown State Detection
 **Goal:** Reliably detect when a spell is on/off cooldown
