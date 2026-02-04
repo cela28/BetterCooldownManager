@@ -596,3 +596,27 @@ StaticPopupDialogs["BCDM_RELOAD"] = {
 function BCDM:PromptReload()
     StaticPopup_Show("BCDM_RELOAD")
 end
+
+-- HideWhenOffCooldown Setting API
+-- These functions provide a clean interface for other modules to access the per-bar setting
+
+function BCDM:GetHideWhenOffCooldown(barType)
+    if not barType then return false end
+    local barSettings = self.db.profile.CooldownManager[barType]
+    return barSettings and barSettings.HideWhenOffCooldown or false
+end
+
+function BCDM:SetHideWhenOffCooldown(barType, value)
+    if not barType then return end
+    local barSettings = self.db.profile.CooldownManager[barType]
+    if barSettings then
+        barSettings.HideWhenOffCooldown = value
+        -- Future phases may add refresh/update calls here
+    end
+end
+
+-- Helper: Check setting by viewer frame name (e.g., "EssentialCooldownViewer")
+function BCDM:IsHideWhenOffCooldownEnabled(viewerFrameName)
+    local barType = self.CooldownManagerViewerToDBViewer[viewerFrameName]
+    return self:GetHideWhenOffCooldown(barType)
+end
