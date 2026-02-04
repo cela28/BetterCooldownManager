@@ -620,3 +620,64 @@ function BCDM:IsHideWhenOffCooldownEnabled(viewerFrameName)
     local barType = self.CooldownManagerViewerToDBViewer[viewerFrameName]
     return self:GetHideWhenOffCooldown(barType)
 end
+
+--------------------------------------------------------------------------------
+-- Cooldown State Detection API
+-- Purpose: Check if a spell is on cooldown (for hide-when-off-cooldown feature)
+--
+-- Returns:
+--   true  = Spell is on cooldown (show icon)
+--   false = Spell is off cooldown OR error occurred (hide icon / fail-show)
+--
+-- Behavior:
+--   - GCD-only states do NOT count as "on cooldown"
+--   - Charge spells: on cooldown if any charge is recharging (currentCharges < maxCharges)
+--   - Invalid spell IDs or API errors return false (fail-show philosophy)
+--------------------------------------------------------------------------------
+
+function BCDM:IsSpellOnCooldown(spellID)
+    -- Input validation: fail-show on nil or 0
+    if not spellID or spellID == 0 then
+        return false
+    end
+
+    -- Validate spell exists
+    if not C_Spell.GetSpellInfo(spellID) then
+        return false  -- Unknown spell, fail-show
+    end
+
+    -- Check charge spells first (takes priority over regular cooldown)
+    local chargeInfo = C_Spell.GetSpellCharges(spellID)
+    if chargeInfo then
+        -- Charge spell: on cooldown if any charge is recharging
+        if chargeInfo.currentCharges and chargeInfo.maxCharges then
+            return chargeInfo.currentCharges < chargeInfo.maxCharges
+        end
+        return false  -- Malformed charge info, fail-show
+    end
+
+    -- Regular spell cooldown check
+    local cdInfo = C_Spell.GetSpellCooldown(spellID)
+    if not cdInfo then
+        return false  -- API error, fail-show
+    end
+
+    -- Filter out GCD-only states
+    -- If isOnGCD field exists and is true, this is just GCD (not real cooldown)
+    if cdInfo.isOnGCD then
+        return false  -- GCD doesn't count as cooldown
+    end
+
+    -- Fallback for isOnGCD field missing: GCD is typically <= 1.5 seconds
+    -- If duration > 0 but <= 1.5 and isOnGCD is nil, it's likely just GCD
+    if cdInfo.isOnGCD == nil and cdInfo.duration and cdInfo.duration > 0 and cdInfo.duration <= 1.5 then
+        return false  -- Assume GCD, fail-show
+    end
+
+    -- Check if real cooldown exists
+    if cdInfo.duration and cdInfo.duration > 0 then
+        return true  -- On cooldown
+    end
+
+    return false  -- Off cooldown
+end
