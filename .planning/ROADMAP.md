@@ -10,12 +10,13 @@
 Plans:
 - [x] 01-01-PLAN.md - Add HideWhenOffCooldown setting to Defaults.lua and getter/setter functions to Globals.lua
 
-### Phase 2: Cooldown State Detection
+### Phase 2: Cooldown State Detection ✓
 **Goal:** Reliably detect when a spell is on/off cooldown
-**Plans:** 1 plan
+**Status:** Complete (2026-02-04)
+**Plans:** 1/1 complete
 
 Plans:
-- [ ] 02-01-PLAN.md - Create IsSpellOnCooldown function with GCD filtering and charge spell handling
+- [x] 02-01-PLAN.md - Create IsSpellOnCooldown function with GCD filtering and charge spell handling
 
 ### Phase 3: Alpha-Based Hiding
 **Goal:** Hide icons when their spell is off cooldown
