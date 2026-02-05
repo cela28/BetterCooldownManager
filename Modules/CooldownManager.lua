@@ -308,7 +308,7 @@ end
 
 local function Position()
     local cooldownManagerSettings = BCDM.db.profile.CooldownManager
-    -- _G["BuffBarCooldownViewer"]:SetFrameStrata("LOW")
+    _G["BuffBarCooldownViewer"]:SetFrameStrata("LOW")
     for _, viewerName in ipairs(BCDM.CooldownManagerViewers) do
         local viewerSettings = cooldownManagerSettings[BCDM.CooldownManagerViewerToDBViewer[viewerName]]
         local viewerFrame = _G[viewerName]
