@@ -1618,18 +1618,8 @@ local function CreateCooldownViewerItemSpellSettings(parentContainer, containerT
 end
 
 local function CreateCooldownViewerSettings(parentContainer, viewerType)
-    local hasAnchorParent = viewerType == "Utility" or viewerType == "Buffs" or viewerType == "BuffBar" or viewerType == "Custom" or viewerType == "AdditionalCustom" or viewerType == "Item" or viewerType == "Trinket" or viewerType == "ItemSpell"
+    local hasAnchorParent = viewerType == "Utility" or viewerType == "Buffs" or viewerType == "Custom" or viewerType == "AdditionalCustom" or viewerType == "Item" or viewerType == "Trinket" or viewerType == "ItemSpell"
     local isCustomViewer = viewerType == "Custom" or viewerType == "AdditionalCustom" or viewerType == "Item" or viewerType == "Trinket" or viewerType == "ItemSpell"
-    local isBuffBar = viewerType == "BuffBar"
-    local buffBarControls = {}
-
-    local function RefreshBuffBarGUISettings()
-        if not isBuffBar then return end
-        local BuffBarDB = BCDM.db.profile.CooldownManager.BuffBar
-        if buffBarControls.widthSlider then buffBarControls.widthSlider:SetDisabled(BuffBarDB.MatchWidthOfAnchor) end
-        if buffBarControls.foregroundColourPicker then buffBarControls.foregroundColourPicker:SetDisabled(BuffBarDB.ColourByClass) end
-        if buffBarControls.iconLayoutDropdown then buffBarControls.iconLayoutDropdown:SetDisabled(not BuffBarDB.Icon.Enabled) end
-    end
 
     local ScrollFrame = AG:Create("ScrollFrame")
     ScrollFrame:SetLayout("Flow")
@@ -1694,90 +1684,6 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
         toggleContainer:AddChild(centerHorizontallyCheckbox)
     end
 
-    if viewerType == "BuffBar" then
-        local toggleContainer = AG:Create("InlineGroup")
-        toggleContainer:SetTitle("Buff Bar Viewer Settings")
-        toggleContainer:SetFullWidth(true)
-        toggleContainer:SetLayout("Flow")
-        ScrollFrame:AddChild(toggleContainer)
-
-        local matchWidthOfAnchorCheckBox = AG:Create("CheckBox")
-        matchWidthOfAnchorCheckBox:SetLabel("Match Width of Anchor")
-        matchWidthOfAnchorCheckBox:SetValue(BCDM.db.profile.CooldownManager.BuffBar.MatchWidthOfAnchor)
-        matchWidthOfAnchorCheckBox:SetCallback("OnValueChanged", function(_, _, value)
-            BCDM.db.profile.CooldownManager.BuffBar.MatchWidthOfAnchor = value
-            BCDM:UpdateCooldownViewer("BuffBar")
-            RefreshBuffBarGUISettings()
-        end)
-        matchWidthOfAnchorCheckBox:SetRelativeWidth(0.25)
-        toggleContainer:AddChild(matchWidthOfAnchorCheckBox)
-
-        local colourByClassCheckbox = AG:Create("CheckBox")
-        colourByClassCheckbox:SetLabel("Colour Bar by Class")
-        colourByClassCheckbox:SetValue(BCDM.db.profile.CooldownManager.BuffBar.ColourByClass)
-        colourByClassCheckbox:SetCallback("OnValueChanged", function(_, _, value)
-            BCDM.db.profile.CooldownManager.BuffBar.ColourByClass = value
-            BCDM:UpdateCooldownViewer("BuffBar")
-            RefreshBuffBarGUISettings()
-        end)
-        colourByClassCheckbox:SetRelativeWidth(0.25)
-        toggleContainer:AddChild(colourByClassCheckbox)
-
-        local foregroundColourPicker = AG:Create("ColorPicker")
-        foregroundColourPicker:SetLabel("Foreground Colour")
-        local r, g, b = unpack(BCDM.db.profile.CooldownManager.BuffBar.ForegroundColour)
-        foregroundColourPicker:SetColor(r, g, b)
-        foregroundColourPicker:SetCallback("OnValueChanged", function(self, _, r, g, b, a)
-            BCDM.db.profile.CooldownManager.BuffBar.ForegroundColour = {r, g, b, a}
-            BCDM:UpdateCooldownViewer("BuffBar")
-        end)
-        foregroundColourPicker:SetRelativeWidth(0.25)
-        foregroundColourPicker:SetHasAlpha(false)
-        toggleContainer:AddChild(foregroundColourPicker)
-        buffBarControls.foregroundColourPicker = foregroundColourPicker
-
-        local backgroundColourPicker = AG:Create("ColorPicker")
-        backgroundColourPicker:SetLabel("Background Colour")
-        local br, bg, bb = unpack(BCDM.db.profile.CooldownManager.BuffBar.BackgroundColour)
-        backgroundColourPicker:SetColor(br, bg, bb)
-        backgroundColourPicker:SetCallback("OnValueChanged", function(self, _, r, g, b, a)
-            BCDM.db.profile.CooldownManager.BuffBar.BackgroundColour = {r, g, b, a}
-            BCDM:UpdateCooldownViewer("BuffBar")
-        end)
-        backgroundColourPicker:SetRelativeWidth(0.25)
-        backgroundColourPicker:SetHasAlpha(true)
-        toggleContainer:AddChild(backgroundColourPicker)
-
-        local iconContainer = AG:Create("InlineGroup")
-        iconContainer:SetTitle("Icon Layout")
-        iconContainer:SetFullWidth(true)
-        iconContainer:SetLayout("Flow")
-        toggleContainer:AddChild(iconContainer)
-
-                local iconEnabledCheckbox = AG:Create("CheckBox")
-        iconEnabledCheckbox:SetLabel("Show Icon")
-        iconEnabledCheckbox:SetValue(BCDM.db.profile.CooldownManager.BuffBar.Icon.Enabled)
-        iconEnabledCheckbox:SetCallback("OnValueChanged", function(_, _, value)
-            BCDM.db.profile.CooldownManager.BuffBar.Icon.Enabled = value
-            BCDM:UpdateCooldownViewer("BuffBar")
-            RefreshBuffBarGUISettings()
-        end)
-        iconEnabledCheckbox:SetRelativeWidth(0.5)
-        iconContainer:AddChild(iconEnabledCheckbox)
-
-        local iconLayoutDropdown = AG:Create("Dropdown")
-        iconLayoutDropdown:SetLabel("Icon Position")
-        iconLayoutDropdown:SetList({["LEFT"] = "Left", ["RIGHT"] = "Right"}, {"LEFT", "RIGHT"})
-        iconLayoutDropdown:SetValue(BCDM.db.profile.CooldownManager.BuffBar.Icon.Layout)
-        iconLayoutDropdown:SetCallback("OnValueChanged", function(self, _, value)
-            BCDM.db.profile.CooldownManager.BuffBar.Icon.Layout = value
-            BCDM:UpdateCooldownViewer("BuffBar")
-        end)
-        iconLayoutDropdown:SetRelativeWidth(0.5)
-        iconContainer:AddChild(iconLayoutDropdown)
-        buffBarControls.iconLayoutDropdown = iconLayoutDropdown
-    end
-
     if viewerType == "Trinket" then
         local enabledCheckbox = AG:Create("CheckBox")
         enabledCheckbox:SetLabel("Enable Trinket Viewer")
@@ -1793,7 +1699,7 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
     layoutContainer:SetLayout("Flow")
     ScrollFrame:AddChild(layoutContainer)
 
-    if viewerType ~= "Custom" and viewerType ~= "AdditionalCustom" and viewerType ~= "Trinket" and viewerType ~= "ItemSpell" and viewerType ~= "Item" and viewerType ~= "BuffBar" then
+    if viewerType ~= "Custom" and viewerType ~= "AdditionalCustom" and viewerType ~= "Trinket" and viewerType ~= "ItemSpell" and viewerType ~= "Item" then
         CreateInformationTag(layoutContainer, "|cFFFFCC00Padding|r is handled by |cFF00B0F7Blizzard|r, not |cFF8080FFBetter|rCooldownManager.")
     end
 
@@ -1842,7 +1748,7 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
         layoutContainer:AddChild(spacingSlider)
     end
 
-    local isPrimaryViewer = viewerType == "Essential" or viewerType == "Utility" or viewerType == "Buffs" or viewerType == "BuffBar"
+    local isPrimaryViewer = viewerType == "Essential" or viewerType == "Utility" or viewerType == "Buffs"
 
     local xOffsetSlider = AG:Create("Slider")
     xOffsetSlider:SetLabel("X Offset")
@@ -1860,59 +1766,11 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
     yOffsetSlider:SetRelativeWidth(isPrimaryViewer and 0.5 or 0.33)
     layoutContainer:AddChild(yOffsetSlider)
 
-    if viewerType == "BuffBar" then
-        local widthSlider = AG:Create("Slider")
-        widthSlider:SetLabel("Width")
-        widthSlider:SetValue(BCDM.db.profile.CooldownManager.BuffBar.Width)
-        widthSlider:SetSliderValues(50, 3000, 0.1)
-        widthSlider:SetCallback("OnValueChanged", function(self, _, value)
-            BCDM.db.profile.CooldownManager.BuffBar.Width = value
-            BCDM:UpdateCooldownViewer("BuffBar")
-        end)
-        widthSlider:SetRelativeWidth(0.5)
-        layoutContainer:AddChild(widthSlider)
-        buffBarControls.widthSlider = widthSlider
-
-        local heightSlider = AG:Create("Slider")
-        heightSlider:SetLabel("Height")
-        heightSlider:SetValue(BCDM.db.profile.CooldownManager.BuffBar.Height)
-        heightSlider:SetSliderValues(5, 200, 0.1)
-        heightSlider:SetCallback("OnValueChanged", function(self, _, value)
-            BCDM.db.profile.CooldownManager.BuffBar.Height = value
-            BCDM:UpdateCooldownViewer("BuffBar")
-        end)
-        heightSlider:SetRelativeWidth(0.5)
-        layoutContainer:AddChild(heightSlider)
-
-        local spacingSlider = AG:Create("Slider")
-        spacingSlider:SetLabel("Spacing")
-        spacingSlider:SetValue(BCDM.db.profile.CooldownManager.BuffBar.Spacing)
-        spacingSlider:SetSliderValues(-10, 50, 0.1)
-        spacingSlider:SetCallback("OnValueChanged", function(self, _, value)
-            BCDM.db.profile.CooldownManager.BuffBar.Spacing = value
-            BCDM:UpdateCooldownViewer("BuffBar")
-        end)
-        spacingSlider:SetRelativeWidth(0.5)
-        layoutContainer:AddChild(spacingSlider)
-
-        local growthDirectionDropdown = AG:Create("Dropdown")
-        growthDirectionDropdown:SetLabel("Growth Direction")
-        growthDirectionDropdown:SetList({["UP"] = "Up", ["DOWN"] = "Down"}, {"UP", "DOWN"})
-        growthDirectionDropdown:SetValue(BCDM.db.profile.CooldownManager.BuffBar.GrowthDirection)
-        growthDirectionDropdown:SetCallback("OnValueChanged", function(self, _, value)
-            BCDM.db.profile.CooldownManager.BuffBar.GrowthDirection = value
-            BCDM:UpdateCooldownViewer("BuffBar")
-        end)
-        growthDirectionDropdown:SetRelativeWidth(0.5)
-        layoutContainer:AddChild(growthDirectionDropdown)
-    end
-
-    if not isBuffBar then
-        local iconContainer = AG:Create("InlineGroup")
-        iconContainer:SetTitle("Icon Settings")
-        iconContainer:SetFullWidth(true)
-        iconContainer:SetLayout("Flow")
-        ScrollFrame:AddChild(iconContainer)
+    local iconContainer = AG:Create("InlineGroup")
+    iconContainer:SetTitle("Icon Settings")
+    iconContainer:SetFullWidth(true)
+    iconContainer:SetLayout("Flow")
+    ScrollFrame:AddChild(iconContainer)
 
         local keepAspectCheckbox = AG:Create("CheckBox")
         keepAspectCheckbox:SetLabel("Keep Aspect Ratio")
@@ -1986,8 +1844,7 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
             LEMO:ApplyChanges()
         end)
 
-        UpdateIconSizeControlState()
-    end
+    UpdateIconSizeControlState()
 
     if isCustomViewer then
         local frameStrataDropdown = AG:Create("Dropdown")
@@ -1999,96 +1856,9 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
         layoutContainer:AddChild(frameStrataDropdown)
     end
 
-    if isBuffBar then
-        local function CreateBuffBarTextSettings(title, textDB)
-            local textContainer = AG:Create("InlineGroup")
-            textContainer:SetTitle(title)
-            textContainer:SetFullWidth(true)
-            textContainer:SetLayout("Flow")
-            ScrollFrame:AddChild(textContainer)
+    CreateCooldownViewerTextSettings(ScrollFrame, viewerType)
 
-            local enabledCheckbox = AG:Create("CheckBox")
-            enabledCheckbox:SetLabel("Enable Text")
-            enabledCheckbox:SetValue(textDB.Enabled)
-            enabledCheckbox:SetRelativeWidth(1)
-            textContainer:AddChild(enabledCheckbox)
-
-            local anchorFromDropdown = AG:Create("Dropdown")
-            anchorFromDropdown:SetLabel("Anchor From")
-            anchorFromDropdown:SetList(AnchorPoints[1], AnchorPoints[2])
-            anchorFromDropdown:SetValue(textDB.Layout[1])
-            anchorFromDropdown:SetCallback("OnValueChanged", function(self, _, value) textDB.Layout[1] = value BCDM:UpdateCooldownViewer("BuffBar") end)
-            anchorFromDropdown:SetRelativeWidth(0.5)
-            textContainer:AddChild(anchorFromDropdown)
-
-            local anchorToDropdown = AG:Create("Dropdown")
-            anchorToDropdown:SetLabel("Anchor To")
-            anchorToDropdown:SetList(AnchorPoints[1], AnchorPoints[2])
-            anchorToDropdown:SetValue(textDB.Layout[2])
-            anchorToDropdown:SetCallback("OnValueChanged", function(self, _, value) textDB.Layout[2] = value BCDM:UpdateCooldownViewer("BuffBar") end)
-            anchorToDropdown:SetRelativeWidth(0.5)
-            textContainer:AddChild(anchorToDropdown)
-
-            local xOffsetSlider = AG:Create("Slider")
-            xOffsetSlider:SetLabel("X Offset")
-            xOffsetSlider:SetValue(textDB.Layout[3])
-            xOffsetSlider:SetSliderValues(-500, 500, 0.1)
-            xOffsetSlider:SetCallback("OnValueChanged", function(self, _, value) textDB.Layout[3] = value BCDM:UpdateCooldownViewer("BuffBar") end)
-            xOffsetSlider:SetRelativeWidth(0.5)
-            textContainer:AddChild(xOffsetSlider)
-
-            local yOffsetSlider = AG:Create("Slider")
-            yOffsetSlider:SetLabel("Y Offset")
-            yOffsetSlider:SetValue(textDB.Layout[4])
-            yOffsetSlider:SetSliderValues(-500, 500, 0.1)
-            yOffsetSlider:SetCallback("OnValueChanged", function(self, _, value) textDB.Layout[4] = value BCDM:UpdateCooldownViewer("BuffBar") end)
-            yOffsetSlider:SetRelativeWidth(0.5)
-            textContainer:AddChild(yOffsetSlider)
-
-            local fontSizeSlider = AG:Create("Slider")
-            fontSizeSlider:SetLabel("Font Size")
-            fontSizeSlider:SetValue(textDB.FontSize)
-            fontSizeSlider:SetSliderValues(6, 72, 1)
-            fontSizeSlider:SetCallback("OnValueChanged", function(self, _, value) textDB.FontSize = value BCDM:UpdateCooldownViewer("BuffBar") end)
-            fontSizeSlider:SetRelativeWidth(0.5)
-            textContainer:AddChild(fontSizeSlider)
-
-            local colourPicker = AG:Create("ColorPicker")
-            colourPicker:SetLabel("Font Colour")
-            local r, g, b = unpack(textDB.Colour)
-            colourPicker:SetColor(r, g, b)
-            colourPicker:SetCallback("OnValueChanged", function(self, _, r, g, b) textDB.Colour = {r, g, b} BCDM:UpdateCooldownViewer("BuffBar") end)
-            colourPicker:SetRelativeWidth(0.5)
-            textContainer:AddChild(colourPicker)
-
-            local function RefreshTextSettings()
-                local enabled = textDB.Enabled
-                anchorFromDropdown:SetDisabled(not enabled)
-                anchorToDropdown:SetDisabled(not enabled)
-                xOffsetSlider:SetDisabled(not enabled)
-                yOffsetSlider:SetDisabled(not enabled)
-                fontSizeSlider:SetDisabled(not enabled)
-                colourPicker:SetDisabled(not enabled)
-            end
-
-            enabledCheckbox:SetCallback("OnValueChanged", function(self, _, value)
-                textDB.Enabled = value
-                RefreshTextSettings()
-                BCDM:UpdateCooldownViewer("BuffBar")
-            end)
-
-            RefreshTextSettings()
-        end
-
-        CreateBuffBarTextSettings("Spell Name Text", BCDM.db.profile.CooldownManager.BuffBar.Text.SpellName)
-        CreateBuffBarTextSettings("Duration Text", BCDM.db.profile.CooldownManager.BuffBar.Text.Duration)
-
-        RefreshBuffBarGUISettings()
-    else
-        CreateCooldownViewerTextSettings(ScrollFrame, viewerType)
-    end
-
-    if not isBuffBar and (viewerType == "Custom" or viewerType == "AdditionalCustom") then
+    if viewerType == "Custom" or viewerType == "AdditionalCustom" then
         local spellContainer = AG:Create("InlineGroup")
         spellContainer:SetTitle("Custom Spells")
         spellContainer:SetFullWidth(true)
@@ -2097,7 +1867,7 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
         CreateCooldownViewerSpellSettings(spellContainer, viewerType, ScrollFrame)
     end
 
-    if not isBuffBar and viewerType == "Item" then
+    if viewerType == "Item" then
         local itemContainer = AG:Create("InlineGroup")
         itemContainer:SetTitle("Custom Items")
         itemContainer:SetFullWidth(true)
@@ -2106,7 +1876,7 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
         CreateCooldownViewerItemSettings(itemContainer, ScrollFrame)
     end
 
-    if not isBuffBar and viewerType == "ItemSpell" then
+    if viewerType == "ItemSpell" then
         local itemSpellContainer = AG:Create("InlineGroup")
         itemSpellContainer:SetTitle("Items & Spells")
         itemSpellContainer:SetFullWidth(true)
@@ -3266,8 +3036,6 @@ function BCDM:CreateGUI()
             CreateCooldownViewerSettings(Wrapper, "Utility")
         elseif MainTab == "Buffs" then
             CreateCooldownViewerSettings(Wrapper, "Buffs")
-        elseif MainTab == "BuffBar" then
-            CreateCooldownViewerSettings(Wrapper, "BuffBar")
         elseif MainTab == "Custom" then
             CreateCooldownViewerSettings(Wrapper, "Custom")
         elseif MainTab == "AdditionalCustom" then
@@ -3287,7 +3055,7 @@ function BCDM:CreateGUI()
         elseif MainTab == "Profiles" then
             CreateProfileSettings(Wrapper)
         end
-        if MainTab == "Essential" or MainTab == "Utility" or MainTab == "Buffs" or MainTab == "BuffBar" then CooldownViewerSettings:Show() else CooldownViewerSettings:Hide() end
+        if MainTab == "Essential" or MainTab == "Utility" or MainTab == "Buffs" then CooldownViewerSettings:Show() else CooldownViewerSettings:Hide() end
         if MainTab == "CastBar" then BCDM.CAST_BAR_TEST_MODE = true BCDM:CreateTestCastBar() else BCDM.CAST_BAR_TEST_MODE = false BCDM:CreateTestCastBar() end
         if MainTab == "Essential" then  BCDM.EssentialCooldownViewerOverlay:Show() else BCDM.EssentialCooldownViewerOverlay:Hide() end
         if MainTab == "Utility" then  BCDM.UtilityCooldownViewerOverlay:Show() else BCDM.UtilityCooldownViewerOverlay:Hide() end
@@ -3305,7 +3073,6 @@ function BCDM:CreateGUI()
         { text = "Essential", value = "Essential"},
         { text = "Utility", value = "Utility"},
         { text = "Buffs", value = "Buffs"},
-        { text = "Buff Bars", value = "BuffBar"},
         { text = "Custom", value = "Custom"},
         { text = "Additional Custom", value = "AdditionalCustom"},
         { text = "Item", value = "Item"},
