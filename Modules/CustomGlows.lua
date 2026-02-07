@@ -98,23 +98,28 @@ function BCDM:GetCustomGlowSettings()
     return self:NormalizeGlowSettings()
 end
 
-local function IsCooldownViewerChild(frame)
-    if not frame or not frame.GetParent then
-        return false
-    end
+local function GetCooldownViewerChild(frame)
+    if not frame or not frame.GetParent then return nil end
 
-    local parent = frame:GetParent()
-    if not parent then
-        return false
-    end
+    local current = frame
+    while current and current.GetParent do
+        local parent = current:GetParent()
+        if not parent then return nil end
 
-    for _, viewerName in ipairs(BCDM.CooldownManagerViewers or {}) do
-        if parent == _G[viewerName] then
-            return true
+        for _, viewerName in ipairs(BCDM.CooldownManagerViewers or {}) do
+            if parent == _G[viewerName] then return current end
         end
+
+        current = parent
     end
 
-    return false
+    return nil
+end
+
+local function GetGlowTarget(frame)
+    if not frame then return nil end
+
+    return GetCooldownViewerChild(frame)
 end
 
 function BCDM:StartCustomGlow(frame)
@@ -207,7 +212,8 @@ function BCDM:SetupCustomGlows()
     end
 
     hooksecurefunc(ActionButtonSpellAlertManager, "ShowAlert", function(_, frame)
-        if not frame or not IsCooldownViewerChild(frame) then
+        local activeGlowTarget = GetGlowTarget(frame)
+        if not activeGlowTarget then
             return
         end
 
@@ -216,24 +222,29 @@ function BCDM:SetupCustomGlows()
             return
         end
 
-        frame.BCDMActiveGlow = true
-        if frame.SpellActivationAlert then
-            frame.SpellActivationAlert:Hide()
+        if activeGlowTarget.BCDMActiveGlow then
+            return
+        end
+
+        activeGlowTarget.BCDMActiveGlow = true
+        if activeGlowTarget.SpellActivationAlert then
+            activeGlowTarget.SpellActivationAlert:Hide()
         end
 
         C_Timer.After(0, function()
-            if frame.BCDMActiveGlow then
-                BCDM:StartCustomGlow(frame)
+            if activeGlowTarget.BCDMActiveGlow then
+                BCDM:StartCustomGlow(activeGlowTarget)
             end
         end)
     end)
 
     hooksecurefunc(ActionButtonSpellAlertManager, "HideAlert", function(_, frame)
-        if not frame or not frame.BCDMActiveGlow then
+        local activeGlowTarget = GetGlowTarget(frame)
+        if not activeGlowTarget or not activeGlowTarget.BCDMActiveGlow then
             return
         end
 
-        frame.BCDMActiveGlow = nil
-        BCDM:StopCustomGlow(frame)
+        activeGlowTarget.BCDMActiveGlow = nil
+        BCDM:StopCustomGlow(activeGlowTarget)
     end)
 end
