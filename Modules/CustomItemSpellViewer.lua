@@ -59,6 +59,13 @@ local function FetchItemData(itemId)
     return itemCount, startTime, durationTime
 end
 
+local function ShouldShowItem(customDB, itemId)
+    if not customDB.HideZeroCharges then return true end
+    local itemCount = select(1, FetchItemData(itemId))
+    if itemCount == nil then return true end
+    return itemCount > 0
+end
+
 local function CreateCustomItemIcon(itemId)
     local CooldownManagerDB = BCDM.db.profile
     local GeneralDB = CooldownManagerDB.General
@@ -223,16 +230,23 @@ local function ResolveItemSpellEntryType(entryId, entryData)
     end
 end
 
-local function CreateCustomIcons(iconTable)
-    local Items = BCDM.db.profile.CooldownManager.ItemSpell.ItemsSpells
+local function CreateCustomIcons(iconTable, visibleItemIds)
+    local CustomDB = BCDM.db.profile.CooldownManager.ItemSpell
+    local Items = CustomDB.ItemsSpells
 
     wipe(iconTable)
+    if visibleItemIds then wipe(visibleItemIds) end
 
     if Items then
         local items = {}
         for entryId, data in pairs(Items) do
             if data.isActive then
                 local entryType = ResolveItemSpellEntryType(entryId, data)
+                if entryType then
+                    if entryType == "item" and not ShouldShowItem(CustomDB, entryId) then
+                        entryType = nil
+                    end
+                end
                 if entryType then
                     table.insert(items, {id = entryId, index = data.layoutIndex, entryType = entryType})
                 end
@@ -250,6 +264,7 @@ local function CreateCustomIcons(iconTable)
             end
             if customItem then
                 table.insert(iconTable, customItem)
+                if visibleItemIds and item.entryType == "item" then visibleItemIds[item.id] = true end
             end
         end
     end
@@ -259,6 +274,7 @@ local function LayoutCustomItemsSpellsBar()
     local CooldownManagerDB = BCDM.db.profile
     local CustomDB = CooldownManagerDB.CooldownManager.ItemSpell
     local customItemBarIcons = {}
+    local visibleItemIds = {}
 
     local growthDirection = CustomDB.GrowthDirection or "RIGHT"
 
@@ -284,9 +300,47 @@ local function LayoutCustomItemsSpellsBar()
     BCDM.CustomItemSpellBarContainer:SetFrameStrata(CustomDB.FrameStrata or "LOW")
     local anchorParent = CustomDB.Layout[2] == "NONE" and UIParent or _G[CustomDB.Layout[2]]
     BCDM.CustomItemSpellBarContainer:SetPoint(containerAnchorFrom, anchorParent, CustomDB.Layout[3], CustomDB.Layout[4], CustomDB.Layout[5])
+    if not BCDM.CustomItemSpellBarContainer.HideZeroEventHooked then
+        BCDM.CustomItemSpellBarContainer.HideZeroEventHooked = true
+        BCDM.CustomItemSpellBarContainer:SetScript("OnEvent", function(self, event, itemId)
+            local customDB = BCDM.db.profile.CooldownManager.ItemSpell
+            if not customDB.HideZeroCharges then return end
+            if event == "PLAYER_ENTERING_WORLD" then
+                BCDM:UpdateCustomItemsSpellsBar()
+                return
+            end
+            if event == "ITEM_COUNT_CHANGED" then
+                local items = customDB.ItemsSpells
+                if not items then return end
+                if not itemId then
+                    BCDM:UpdateCustomItemsSpellsBar()
+                    return
+                end
+                local entry = items[itemId]
+                if not (entry and entry.isActive) then return end
+                local entryType = ResolveItemSpellEntryType(itemId, entry)
+                if entryType ~= "item" then return end
+                local visible = self.VisibleItemIds and self.VisibleItemIds[itemId] or false
+                local shouldShow = ShouldShowItem(customDB, itemId)
+                if visible ~= shouldShow then
+                    BCDM:UpdateCustomItemsSpellsBar()
+                end
+            end
+        end)
+    end
+
+    if CustomDB.HideZeroCharges then
+        BCDM.CustomItemSpellBarContainer:RegisterEvent("ITEM_COUNT_CHANGED")
+        BCDM.CustomItemSpellBarContainer:RegisterEvent("PLAYER_ENTERING_WORLD")
+    else
+        BCDM.CustomItemSpellBarContainer:UnregisterEvent("ITEM_COUNT_CHANGED")
+        BCDM.CustomItemSpellBarContainer:UnregisterEvent("PLAYER_ENTERING_WORLD")
+    end
+
     for _, child in ipairs({BCDM.CustomItemSpellBarContainer:GetChildren()}) do child:UnregisterAllEvents() child:Hide() child:SetParent(nil) end
 
-    CreateCustomIcons(customItemBarIcons)
+    CreateCustomIcons(customItemBarIcons, visibleItemIds)
+    BCDM.CustomItemSpellBarContainer.VisibleItemIds = visibleItemIds
 
     local iconWidth, iconHeight = BCDM:GetIconDimensions(CustomDB)
     local iconSpacing = CustomDB.Spacing

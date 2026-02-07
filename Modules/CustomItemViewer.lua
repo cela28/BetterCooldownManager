@@ -59,6 +59,13 @@ local function FetchItemData(itemId)
     return itemCount, startTime, durationTime
 end
 
+local function ShouldShowItem(customDB, itemId)
+    if not customDB.HideZeroCharges then return true end
+    local itemCount = select(1, FetchItemData(itemId))
+    if itemCount == nil then return true end
+    return itemCount > 0
+end
+
 local function CreateCustomIcon(itemId)
     local CooldownManagerDB = BCDM.db.profile
     local GeneralDB = CooldownManagerDB.General
@@ -139,8 +146,9 @@ local function CreateCustomIcon(itemId)
     return customIcon
 end
 
-local function CreateCustomIcons(iconTable)
-    local Items = BCDM.db.profile.CooldownManager.Item.Items
+local function CreateCustomIcons(iconTable, visibleItemIds)
+    local CustomDB = BCDM.db.profile.CooldownManager.Item
+    local Items = CustomDB.Items
 
     local isWarlock = select(2, UnitClass("player")) == "WARLOCK"
     local pactOfGluttony = C_SpellBook.IsSpellKnown(386689)
@@ -153,6 +161,7 @@ local function CreateCustomIcons(iconTable)
     end
 
     wipe(iconTable)
+    if visibleItemIds then wipe(visibleItemIds) end
 
     if Items then
         local items = {}
@@ -164,11 +173,15 @@ local function CreateCustomIcons(iconTable)
                     healthstoneIndex = math.min(healthstoneIndex or math.huge, layoutIndex)
                 end
             elseif data.isActive then
-                table.insert(items, {id = itemId, index = layoutIndex})
+                if ShouldShowItem(CustomDB, itemId) then
+                    table.insert(items, {id = itemId, index = layoutIndex})
+                end
             end
         end
         if isWarlock and healthstoneIndex and activeHealthstoneId then
-            table.insert(items, {id = activeHealthstoneId, index = healthstoneIndex})
+            if ShouldShowItem(CustomDB, activeHealthstoneId) then
+                table.insert(items, {id = activeHealthstoneId, index = healthstoneIndex})
+            end
         end
 
         table.sort(items, function(a, b) return a.index < b.index end)
@@ -177,6 +190,7 @@ local function CreateCustomIcons(iconTable)
             local customItem = CreateCustomIcon(item.id)
             if customItem then
                 table.insert(iconTable, customItem)
+                if visibleItemIds then visibleItemIds[item.id] = true end
             end
         end
     end
@@ -186,6 +200,7 @@ local function LayoutCustomItemBar()
     local CooldownManagerDB = BCDM.db.profile
     local CustomDB = CooldownManagerDB.CooldownManager.Item
     local customItemBarIcons = {}
+    local visibleItemIds = {}
 
     local growthDirection = CustomDB.GrowthDirection or "RIGHT"
 
@@ -212,9 +227,60 @@ local function LayoutCustomItemBar()
     local anchorParent = CustomDB.Layout[2] == "NONE" and UIParent or _G[CustomDB.Layout[2]]
     BCDM.CustomItemBarContainer:SetPoint(containerAnchorFrom, anchorParent, CustomDB.Layout[3], CustomDB.Layout[4], CustomDB.Layout[5])
 
+    if not BCDM.CustomItemBarContainer.HideZeroEventHooked then
+        BCDM.CustomItemBarContainer.HideZeroEventHooked = true
+        BCDM.CustomItemBarContainer:SetScript("OnEvent", function(self, event, itemId)
+            local customDB = BCDM.db.profile.CooldownManager.Item
+            if not customDB.HideZeroCharges then return end
+            if event == "PLAYER_ENTERING_WORLD" then
+                BCDM:UpdateCustomItemBar()
+                return
+            end
+            if event == "ITEM_COUNT_CHANGED" then
+                local items = customDB.Items
+                if not items then return end
+                if not itemId then
+                    BCDM:UpdateCustomItemBar()
+                    return
+                end
+                local entry = items[itemId]
+                local isWarlock = select(2, UnitClass("player")) == "WARLOCK"
+                if not (entry and entry.isActive) then
+                    if isWarlock and (itemId == 224464 or itemId == 5512) then
+                        local baseEntry = items[5512]
+                        local gluttonyEntry = items[224464]
+                        if not ((baseEntry and baseEntry.isActive) or (gluttonyEntry and gluttonyEntry.isActive)) then
+                            return
+                        end
+                    else
+                        return
+                    end
+                end
+                local activeItemId = itemId
+                if isWarlock and (itemId == 224464 or itemId == 5512) then
+                    activeItemId = C_SpellBook.IsSpellKnown(386689) and 224464 or 5512
+                end
+                local visible = self.VisibleItemIds and self.VisibleItemIds[activeItemId] or false
+                local shouldShow = ShouldShowItem(customDB, activeItemId)
+                if visible ~= shouldShow then
+                    BCDM:UpdateCustomItemBar()
+                end
+            end
+        end)
+    end
+
+    if CustomDB.HideZeroCharges then
+        BCDM.CustomItemBarContainer:RegisterEvent("ITEM_COUNT_CHANGED")
+        BCDM.CustomItemBarContainer:RegisterEvent("PLAYER_ENTERING_WORLD")
+    else
+        BCDM.CustomItemBarContainer:UnregisterEvent("ITEM_COUNT_CHANGED")
+        BCDM.CustomItemBarContainer:UnregisterEvent("PLAYER_ENTERING_WORLD")
+    end
+
     for _, child in ipairs({BCDM.CustomItemBarContainer:GetChildren()}) do child:UnregisterAllEvents() child:Hide() child:SetParent(nil) end
 
-    CreateCustomIcons(customItemBarIcons)
+    CreateCustomIcons(customItemBarIcons, visibleItemIds)
+    BCDM.CustomItemBarContainer.VisibleItemIds = visibleItemIds
 
     local iconWidth, iconHeight = BCDM:GetIconDimensions(CustomDB)
     local iconSpacing = CustomDB.Spacing

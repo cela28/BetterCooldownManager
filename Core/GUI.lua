@@ -1772,77 +1772,89 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
     iconContainer:SetLayout("Flow")
     ScrollFrame:AddChild(iconContainer)
 
-        local keepAspectCheckbox = AG:Create("CheckBox")
-        keepAspectCheckbox:SetLabel("Keep Aspect Ratio")
-        keepAspectCheckbox:SetValue(BCDM.db.profile.CooldownManager[viewerType].KeepAspectRatio ~= false)
-        keepAspectCheckbox:SetRelativeWidth(1)
-        iconContainer:AddChild(keepAspectCheckbox)
+    local keepAspectCheckbox = AG:Create("CheckBox")
+    keepAspectCheckbox:SetLabel("Keep Aspect Ratio")
+    keepAspectCheckbox:SetValue(BCDM.db.profile.CooldownManager[viewerType].KeepAspectRatio ~= false)
+    keepAspectCheckbox:SetRelativeWidth((viewerType == "Item" or viewerType == "ItemSpell") and 0.5 or 1)
+    iconContainer:AddChild(keepAspectCheckbox)
 
-        local iconSizeSlider = AG:Create("Slider")
-        iconSizeSlider:SetLabel("Icon Size")
-        iconSizeSlider:SetValue(BCDM.db.profile.CooldownManager[viewerType].IconSize)
-        iconSizeSlider:SetSliderValues(16, 128, 0.1)
-        iconSizeSlider:SetCallback("OnValueChanged", function(self, _, value)
-            BCDM.db.profile.CooldownManager[viewerType].IconSize = value
+    if viewerType == "Item" or viewerType == "ItemSpell" then
+        local hideZeroChargesCheckbox = AG:Create("CheckBox")
+        hideZeroChargesCheckbox:SetLabel("Hide Items with Zero Charges/Uses")
+        hideZeroChargesCheckbox:SetValue(BCDM.db.profile.CooldownManager[viewerType].HideZeroCharges)
+        hideZeroChargesCheckbox:SetCallback("OnValueChanged", function(_, _, value)
+            BCDM.db.profile.CooldownManager[viewerType].HideZeroCharges = value
             BCDM:UpdateCooldownViewer(viewerType)
         end)
-        iconSizeSlider:SetRelativeWidth(0.3333)
-        iconContainer:AddChild(iconSizeSlider)
+        hideZeroChargesCheckbox:SetRelativeWidth(0.5)
+        iconContainer:AddChild(hideZeroChargesCheckbox)
+    end
 
-        local iconWidthSlider = AG:Create("Slider")
-        iconWidthSlider:SetLabel("Icon Width")
-        iconWidthSlider:SetValue(BCDM.db.profile.CooldownManager[viewerType].IconWidth or BCDM.db.profile.CooldownManager[viewerType].IconSize)
-        iconWidthSlider:SetSliderValues(16, 128, 0.1)
-        iconWidthSlider:SetCallback("OnValueChanged", function(self, _, value)
-            BCDM.db.profile.CooldownManager[viewerType].IconWidth = value
-            BCDM:UpdateCooldownViewer(viewerType)
-        end)
-        iconWidthSlider:SetRelativeWidth(0.3333)
-        iconContainer:AddChild(iconWidthSlider)
+    local iconSizeSlider = AG:Create("Slider")
+    iconSizeSlider:SetLabel("Icon Size")
+    iconSizeSlider:SetValue(BCDM.db.profile.CooldownManager[viewerType].IconSize)
+    iconSizeSlider:SetSliderValues(16, 128, 0.1)
+    iconSizeSlider:SetCallback("OnValueChanged", function(self, _, value)
+        BCDM.db.profile.CooldownManager[viewerType].IconSize = value
+        BCDM:UpdateCooldownViewer(viewerType)
+    end)
+    iconSizeSlider:SetRelativeWidth(0.3333)
+    iconContainer:AddChild(iconSizeSlider)
 
-        local iconHeightSlider = AG:Create("Slider")
-        iconHeightSlider:SetLabel("Icon Height")
-        iconHeightSlider:SetValue(BCDM.db.profile.CooldownManager[viewerType].IconHeight or BCDM.db.profile.CooldownManager[viewerType].IconSize)
-        iconHeightSlider:SetSliderValues(16, 128, 0.1)
-        iconHeightSlider:SetCallback("OnValueChanged", function(self, _, value)
-            BCDM.db.profile.CooldownManager[viewerType].IconHeight = value
-            BCDM:UpdateCooldownViewer(viewerType)
-        end)
-        iconHeightSlider:SetRelativeWidth(0.3333)
-        iconContainer:AddChild(iconHeightSlider)
+    local iconWidthSlider = AG:Create("Slider")
+    iconWidthSlider:SetLabel("Icon Width")
+    iconWidthSlider:SetValue(BCDM.db.profile.CooldownManager[viewerType].IconWidth or BCDM.db.profile.CooldownManager[viewerType].IconSize)
+    iconWidthSlider:SetSliderValues(16, 128, 0.1)
+    iconWidthSlider:SetCallback("OnValueChanged", function(self, _, value)
+        BCDM.db.profile.CooldownManager[viewerType].IconWidth = value
+        BCDM:UpdateCooldownViewer(viewerType)
+    end)
+    iconWidthSlider:SetRelativeWidth(0.3333)
+    iconContainer:AddChild(iconWidthSlider)
+
+    local iconHeightSlider = AG:Create("Slider")
+    iconHeightSlider:SetLabel("Icon Height")
+    iconHeightSlider:SetValue(BCDM.db.profile.CooldownManager[viewerType].IconHeight or BCDM.db.profile.CooldownManager[viewerType].IconSize)
+    iconHeightSlider:SetSliderValues(16, 128, 0.1)
+    iconHeightSlider:SetCallback("OnValueChanged", function(self, _, value)
+        BCDM.db.profile.CooldownManager[viewerType].IconHeight = value
+        BCDM:UpdateCooldownViewer(viewerType)
+    end)
+    iconHeightSlider:SetRelativeWidth(0.3333)
+    iconContainer:AddChild(iconHeightSlider)
 
 
-        if viewerType == "Essential" or viewerType == "Utility" or viewerType == "Buffs" then
-            local infoTag = CreateInformationTag(iconContainer, "Size changes will be applied on closing the |cFF8080FFBetter|rCooldownManager Configuration Window.", "LEFT")
-            infoTag:SetRelativeWidth(0.7)
-            local forceUpdateButton = AG:Create("Button")
-            forceUpdateButton:SetText("Update")
-            forceUpdateButton:SetRelativeWidth(0.3)
-            forceUpdateButton:SetCallback("OnClick", function() LEMO:ApplyChanges() end)
-            iconContainer:AddChild(forceUpdateButton)
+    if viewerType == "Essential" or viewerType == "Utility" or viewerType == "Buffs" then
+        local infoTag = CreateInformationTag(iconContainer, "Size changes will be applied on closing the |cFF8080FFBetter|rCooldownManager Configuration Window.", "LEFT")
+        infoTag:SetRelativeWidth(0.7)
+        local forceUpdateButton = AG:Create("Button")
+        forceUpdateButton:SetText("Update")
+        forceUpdateButton:SetRelativeWidth(0.3)
+        forceUpdateButton:SetCallback("OnClick", function() LEMO:ApplyChanges() end)
+        iconContainer:AddChild(forceUpdateButton)
+    end
+
+    local function UpdateIconSizeControlState()
+        local keepAspect = BCDM.db.profile.CooldownManager[viewerType].KeepAspectRatio ~= false
+        DeepDisable(iconSizeSlider, not keepAspect)
+        DeepDisable(iconWidthSlider, keepAspect)
+        DeepDisable(iconHeightSlider, keepAspect)
+    end
+
+    keepAspectCheckbox:SetCallback("OnValueChanged", function(self, _, value)
+        local viewerDB = BCDM.db.profile.CooldownManager[viewerType]
+        viewerDB.KeepAspectRatio = value
+        local fallbackSize = viewerDB.IconSize or viewerDB.IconWidth or viewerDB.IconHeight or 32
+        if value then
+            viewerDB.IconSize = viewerDB.IconWidth or viewerDB.IconHeight or fallbackSize
+        else
+            viewerDB.IconWidth = viewerDB.IconWidth or fallbackSize
+            viewerDB.IconHeight = viewerDB.IconHeight or fallbackSize
         end
-
-        local function UpdateIconSizeControlState()
-            local keepAspect = BCDM.db.profile.CooldownManager[viewerType].KeepAspectRatio ~= false
-            DeepDisable(iconSizeSlider, not keepAspect)
-            DeepDisable(iconWidthSlider, keepAspect)
-            DeepDisable(iconHeightSlider, keepAspect)
-        end
-
-        keepAspectCheckbox:SetCallback("OnValueChanged", function(self, _, value)
-            local viewerDB = BCDM.db.profile.CooldownManager[viewerType]
-            viewerDB.KeepAspectRatio = value
-            local fallbackSize = viewerDB.IconSize or viewerDB.IconWidth or viewerDB.IconHeight or 32
-            if value then
-                viewerDB.IconSize = viewerDB.IconWidth or viewerDB.IconHeight or fallbackSize
-            else
-                viewerDB.IconWidth = viewerDB.IconWidth or fallbackSize
-                viewerDB.IconHeight = viewerDB.IconHeight or fallbackSize
-            end
-            UpdateIconSizeControlState()
-            BCDM:UpdateCooldownViewer(viewerType)
-            LEMO:ApplyChanges()
-        end)
+        UpdateIconSizeControlState()
+        BCDM:UpdateCooldownViewer(viewerType)
+        LEMO:ApplyChanges()
+    end)
 
     UpdateIconSizeControlState()
 
