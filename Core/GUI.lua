@@ -1682,6 +1682,22 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
         end)
         centerHorizontallyCheckbox:SetRelativeWidth(1)
         toggleContainer:AddChild(centerHorizontallyCheckbox)
+
+        local hideWhenOffCooldownCheckbox = AG:Create("CheckBox")
+        hideWhenOffCooldownCheckbox:SetLabel("Hide When Off Cooldown")
+        hideWhenOffCooldownCheckbox:SetValue(BCDM.db.profile.CooldownManager[viewerType].HideWhenOffCooldown)
+        hideWhenOffCooldownCheckbox:SetCallback("OnValueChanged", function(_, _, value)
+            BCDM.db.profile.CooldownManager[viewerType].HideWhenOffCooldown = value
+            BCDM:RefreshHideWhenOffCooldown()
+        end)
+        hideWhenOffCooldownCheckbox:SetCallback("OnEnter", function(widget)
+            GameTooltip:SetOwner(widget.frame, "ANCHOR_CURSOR")
+            GameTooltip:SetText("Hides spell icons that are not on cooldown", 1, 1, 1, 1, false)
+            GameTooltip:Show()
+        end)
+        hideWhenOffCooldownCheckbox:SetCallback("OnLeave", function() GameTooltip:Hide() end)
+        hideWhenOffCooldownCheckbox:SetRelativeWidth(1)
+        toggleContainer:AddChild(hideWhenOffCooldownCheckbox)
     end
 
     if viewerType == "Trinket" then
