@@ -27,12 +27,11 @@ Plans:
 - [x] 03-01-PLAN.md - Create HideWhenOffCooldown module with RefreshLayout hooks and event-driven visibility
 
 ### Phase 4: Layout Collapse
-**Goal:** Make remaining icons shift to fill gaps
+**Goal:** Make visible icons shift to fill gaps left by hidden (alpha=0) icons
+**Plans:** 1 plan
 
-Tasks:
-- Modify layout calculation to skip alpha=0 icons
-- Ensure smooth repositioning when icons hide/show
-- Test with various bar configurations
+Plans:
+- [ ] 04-01-PLAN.md - Add alpha filtering to CenterWrappedRows for layout collapse
 
 ### Phase 5: UI Configuration
 **Goal:** Let users toggle the feature per-bar
