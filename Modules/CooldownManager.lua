@@ -224,10 +224,14 @@ local function CenterWrappedRows(viewerName)
     local iconLimit = viewer.iconLimit
     if not iconLimit or iconLimit <= 0 then return end
 
+    local collapseEnabled = BCDM:IsHideWhenOffCooldownEnabled(viewerName)
+
     local visibleIcons = {}
     for _, childFrame in ipairs({ viewer:GetChildren() }) do
         if childFrame and childFrame:IsShown() and childFrame.layoutIndex then
-            table.insert(visibleIcons, childFrame)
+            if not collapseEnabled or childFrame:GetAlpha() > 0 then
+                table.insert(visibleIcons, childFrame)
+            end
         end
     end
 
