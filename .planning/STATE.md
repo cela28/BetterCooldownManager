@@ -2,17 +2,17 @@
 
 ## Current Position
 
-**Phase:** 4 of 5 (Layout Collapse)
+**Phase:** 5 of 5 (UI Configuration)
 **Plan:** 1 of 1 in phase
-**Status:** Phase complete
-**Last activity:** 2026-02-12 - Completed 04-01-PLAN.md
+**Status:** ALL PHASES COMPLETE
+**Last activity:** 2026-02-12 - Completed 05-01-PLAN.md
 
-**Progress:** [########--] 80%
+**Progress:** [██████████] 100%
 - Phase 1: Settings Infrastructure - COMPLETE
 - Phase 2: Cooldown State Detection - COMPLETE
 - Phase 3: Alpha-Based Hiding - COMPLETE
 - Phase 4: Layout Collapse - COMPLETE
-- Phase 5: UI Configuration - Not started
+- Phase 5: UI Configuration - COMPLETE
 
 ## Accumulated Decisions
 
@@ -29,6 +29,9 @@
 | 04-01 | Guard alpha check with feature toggle | Preserve existing behavior when HideWhenOffCooldown is disabled |
 | 04-01 | Use GetAlpha() > 0 (not == 1) | Handle potential intermediate alpha values from other systems |
 | 04-01 | Maintain existing centering math | Center-compacting behavior already satisfies requirements |
+| 05-01 | GameTooltip for hover tooltip | Standard pattern for feature descriptions, cleaner than SetDescription |
+| 05-01 | Instant-apply via RefreshHideWhenOffCooldown | Matches addon's instant-apply UX pattern for all settings |
+| 05-01 | Inline placement in toggleContainer | User-specified: no separator, header, or dedicated section |
 
 ## Blockers & Concerns
 
@@ -37,5 +40,5 @@ None identified.
 ## Session Continuity
 
 **Last session:** 2026-02-12
-**Stopped at:** Completed 04-01-PLAN.md
-**Resume file:** None - Phase 4 complete, ready for Phase 5
+**Stopped at:** Completed 05-01-PLAN.md - ALL PHASES COMPLETE
+**Resume file:** None - Feature fully implemented and functional
