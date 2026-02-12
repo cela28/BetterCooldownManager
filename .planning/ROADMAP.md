@@ -34,12 +34,13 @@ Plans:
 Plans:
 - [x] 04-01-PLAN.md - Add alpha filtering to CenterWrappedRows for layout collapse
 
-### Phase 5: UI Configuration
+### Phase 5: UI Configuration ✓
 **Goal:** Let users toggle the feature per-bar via checkbox in settings panel
-**Plans:** 1 plan
+**Status:** Complete (2026-02-12)
+**Plans:** 1/1 complete
 
 Plans:
-- [ ] 05-01-PLAN.md - Add HideWhenOffCooldown checkbox to Essential/Utility settings panel with instant-apply and tooltip
+- [x] 05-01-PLAN.md - Add HideWhenOffCooldown checkbox to Essential/Utility settings panel with instant-apply and tooltip
 
 ---
 
