@@ -1629,6 +1629,7 @@ end
 local function CreateCooldownViewerSettings(parentContainer, viewerType)
     local hasAnchorParent = viewerType == "Utility" or viewerType == "Buffs" or viewerType == "Custom" or viewerType == "AdditionalCustom" or viewerType == "Item" or viewerType == "Trinket" or viewerType == "ItemSpell"
     local isCustomViewer = viewerType == "Custom" or viewerType == "AdditionalCustom" or viewerType == "Item" or viewerType == "Trinket" or viewerType == "ItemSpell"
+    local supportsColumnWrap = viewerType == "Custom" or viewerType == "AdditionalCustom" or viewerType == "Item" or viewerType == "ItemSpell"
 
     local ScrollFrame = AG:Create("ScrollFrame")
     ScrollFrame:SetLayout("Flow")
@@ -1740,12 +1741,14 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
     layoutContainer:AddChild(anchorToDropdown)
 
     if isCustomViewer then
+        local growthControlWidth = supportsColumnWrap and 0.3333 or 0.5
+
         local growthDirectionDropdown = AG:Create("Dropdown")
         growthDirectionDropdown:SetLabel(LL("Growth Direction"))
         growthDirectionDropdown:SetList({["LEFT"] = "Left", ["RIGHT"] = "Right", ["UP"] = "Up", ["DOWN"] = "Down"}, {"UP", "DOWN", "LEFT", "RIGHT"})
         growthDirectionDropdown:SetValue(BCDM.db.profile.CooldownManager[viewerType].GrowthDirection)
         growthDirectionDropdown:SetCallback("OnValueChanged", function(self, _, value) BCDM.db.profile.CooldownManager[viewerType].GrowthDirection = value BCDM:UpdateCooldownViewer(viewerType) end)
-        growthDirectionDropdown:SetRelativeWidth(0.5)
+        growthDirectionDropdown:SetRelativeWidth(growthControlWidth)
         layoutContainer:AddChild(growthDirectionDropdown)
 
         local spacingSlider = AG:Create("Slider")
@@ -1753,8 +1756,21 @@ local function CreateCooldownViewerSettings(parentContainer, viewerType)
         spacingSlider:SetValue(BCDM.db.profile.CooldownManager[viewerType].Spacing)
         spacingSlider:SetSliderValues(-1, 32, 0.1)
         spacingSlider:SetCallback("OnValueChanged", function(self, _, value) BCDM.db.profile.CooldownManager[viewerType].Spacing = value BCDM:UpdateCooldownViewer(viewerType) end)
-        spacingSlider:SetRelativeWidth(0.5)
+        spacingSlider:SetRelativeWidth(growthControlWidth)
         layoutContainer:AddChild(spacingSlider)
+
+        if supportsColumnWrap then
+            local columnsSlider = AG:Create("Slider")
+            columnsSlider:SetLabel(LL("Wrap After"))
+            columnsSlider:SetValue(BCDM.db.profile.CooldownManager[viewerType].Columns or 0)
+            columnsSlider:SetSliderValues(0, 24, 1)
+            columnsSlider:SetCallback("OnValueChanged", function(self, _, value)
+                BCDM.db.profile.CooldownManager[viewerType].Columns = math.max(0, math.floor(value or 0))
+                BCDM:UpdateCooldownViewer(viewerType)
+            end)
+            columnsSlider:SetRelativeWidth(0.3333)
+            layoutContainer:AddChild(columnsSlider)
+        end
     end
 
     local isPrimaryViewer = viewerType == "Essential" or viewerType == "Utility" or viewerType == "Buffs"

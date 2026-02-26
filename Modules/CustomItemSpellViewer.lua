@@ -274,6 +274,26 @@ local function CreateCustomIcons(iconTable, visibleItemIds)
     end
 end
 
+local function GetColumnWrapLimit(customDB)
+    local wrapLimit = math.floor(tonumber(customDB.Columns) or 0)
+    if wrapLimit < 1 then
+        return 0
+    end
+    return wrapLimit
+end
+
+local function IsCenteredHorizontalLayout(point, growthDirection)
+    return (point == "TOP" or point == "BOTTOM") and (growthDirection == "LEFT" or growthDirection == "RIGHT")
+end
+
+local function ShouldGrowUp(point)
+    return point and point:find("BOTTOM") ~= nil
+end
+
+local function ShouldGrowLeft(point)
+    return point and point:find("RIGHT") ~= nil
+end
+
 local function LayoutCustomItemsSpellsBar()
     local CooldownManagerDB = BCDM.db.profile
     local CustomDB = CooldownManagerDB.CooldownManager.ItemSpell
@@ -350,53 +370,66 @@ local function LayoutCustomItemsSpellsBar()
 
     local iconWidth, iconHeight = BCDM:GetIconDimensions(CustomDB)
     local iconSpacing = CustomDB.Spacing
+    local point = select(1, BCDM.CustomItemSpellBarContainer:GetPoint(1))
+    local isHorizontalGrowth = growthDirection == "LEFT" or growthDirection == "RIGHT"
+    local wrapLimit = GetColumnWrapLimit(CustomDB)
+    local lineLimit = (wrapLimit > 0) and wrapLimit or #customItemBarIcons
+    local useCenteredLayout = IsCenteredHorizontalLayout(point, growthDirection)
 
     if #customItemBarIcons == 0 then
         BCDM.CustomItemSpellBarContainer:SetSize(1, 1)
     else
-        local point = select(1, BCDM.CustomItemSpellBarContainer:GetPoint(1))
-        local useCenteredLayout = (point == "TOP" or point == "BOTTOM") and (growthDirection == "LEFT" or growthDirection == "RIGHT")
+        local totalWidth, totalHeight
+        local lineCount = math.ceil(#customItemBarIcons / lineLimit)
 
-        local totalWidth, totalHeight = 0, 0
-        if useCenteredLayout or growthDirection == "RIGHT" or growthDirection == "LEFT" then
-            totalWidth = (#customItemBarIcons * iconWidth) + ((#customItemBarIcons - 1) * iconSpacing)
-            totalHeight = iconHeight
-        elseif growthDirection == "UP" or growthDirection == "DOWN" then
-            totalWidth = iconWidth
-            totalHeight = (#customItemBarIcons * iconHeight) + ((#customItemBarIcons - 1) * iconSpacing)
+        if isHorizontalGrowth then
+            local columnsInRow = math.min(lineLimit, #customItemBarIcons)
+            totalWidth = (columnsInRow * iconWidth) + ((columnsInRow - 1) * iconSpacing)
+            totalHeight = (lineCount * iconHeight) + ((lineCount - 1) * iconSpacing)
+        else
+            local rowsInColumn = math.min(lineLimit, #customItemBarIcons)
+            totalWidth = (lineCount * iconWidth) + ((lineCount - 1) * iconSpacing)
+            totalHeight = (rowsInColumn * iconHeight) + ((rowsInColumn - 1) * iconSpacing)
         end
         BCDM.CustomItemSpellBarContainer:SetWidth(totalWidth)
         BCDM.CustomItemSpellBarContainer:SetHeight(totalHeight)
     end
 
     local LayoutConfig = {
-        TOPLEFT     = { anchor="TOPLEFT",     xMult=1,  yMult=1  },
-        TOP         = { anchor="TOP",         xMult=0,  yMult=1  },
-        TOPRIGHT    = { anchor="TOPRIGHT",    xMult=-1, yMult=1  },
-        BOTTOMLEFT  = { anchor="BOTTOMLEFT",  xMult=1,  yMult=-1 },
-        BOTTOM      = { anchor="BOTTOM",      xMult=0,  yMult=-1 },
-        BOTTOMRIGHT = { anchor="BOTTOMRIGHT", xMult=-1, yMult=-1 },
-        LEFT        = { anchor="LEFT",        xMult=1,  yMult=0  },
-        RIGHT       = { anchor="RIGHT",       xMult=-1, yMult=0  },
-        CENTER      = { anchor="CENTER",      xMult=0,  yMult=0  },
+        TOPLEFT     = { anchor = "TOPLEFT" },
+        TOP         = { anchor = "TOP" },
+        TOPRIGHT    = { anchor = "TOPRIGHT" },
+        BOTTOMLEFT  = { anchor = "BOTTOMLEFT" },
+        BOTTOM      = { anchor = "BOTTOM" },
+        BOTTOMRIGHT = { anchor = "BOTTOMRIGHT" },
+        LEFT        = { anchor = "LEFT" },
+        RIGHT       = { anchor = "RIGHT" },
+        CENTER      = { anchor = "CENTER" },
     }
 
-    local point = select(1, BCDM.CustomItemSpellBarContainer:GetPoint(1))
-    local useCenteredLayout = (point == "TOP" or point == "BOTTOM") and (growthDirection == "LEFT" or growthDirection == "RIGHT")
-
     if useCenteredLayout and #customItemBarIcons > 0 then
-        local totalWidth = (#customItemBarIcons * iconWidth) + ((#customItemBarIcons - 1) * iconSpacing)
-        local startOffset = -(totalWidth / 2) + (iconWidth / 2)
+        local rowCount = math.ceil(#customItemBarIcons / lineLimit)
+        local rowDirection = ShouldGrowUp(point) and 1 or -1
 
-        for i, spellIcon in ipairs(customItemBarIcons) do
-            spellIcon:SetParent(BCDM.CustomItemSpellBarContainer)
-            spellIcon:SetSize(iconWidth, iconHeight)
-            spellIcon:ClearAllPoints()
+        for rowIndex = 1, rowCount do
+            local rowStart = ((rowIndex - 1) * lineLimit) + 1
+            local rowEnd = math.min(rowStart + lineLimit - 1, #customItemBarIcons)
+            local rowIcons = rowEnd - rowStart + 1
+            local rowWidth = (rowIcons * iconWidth) + ((rowIcons - 1) * iconSpacing)
+            local startOffset = -(rowWidth / 2) + (iconWidth / 2)
+            local yOffset = (rowIndex - 1) * (iconHeight + iconSpacing) * rowDirection
 
-            local xOffset = startOffset + ((i - 1) * (iconWidth + iconSpacing))
-            spellIcon:SetPoint("CENTER", BCDM.CustomItemSpellBarContainer, "CENTER", xOffset, 0)
-            ApplyCooldownText()
-            spellIcon:Show()
+            for i = rowStart, rowEnd do
+                local spellIcon = customItemBarIcons[i]
+                spellIcon:SetParent(BCDM.CustomItemSpellBarContainer)
+                spellIcon:SetSize(iconWidth, iconHeight)
+                spellIcon:ClearAllPoints()
+
+                local xOffset = startOffset + ((i - rowStart) * (iconWidth + iconSpacing))
+                spellIcon:SetPoint("CENTER", BCDM.CustomItemSpellBarContainer, "CENTER", xOffset, yOffset)
+                ApplyCooldownText()
+                spellIcon:Show()
+            end
         end
     else
         for i, spellIcon in ipairs(customItemBarIcons) do
@@ -408,14 +441,32 @@ local function LayoutCustomItemsSpellsBar()
                 local config = LayoutConfig[point] or LayoutConfig.TOPLEFT
                 spellIcon:SetPoint(config.anchor, BCDM.CustomItemSpellBarContainer, config.anchor, 0, 0)
             else
-                if growthDirection == "RIGHT" then
-                    spellIcon:SetPoint("LEFT", customItemBarIcons[i - 1], "RIGHT", iconSpacing, 0)
-                elseif growthDirection == "LEFT" then
-                    spellIcon:SetPoint("RIGHT", customItemBarIcons[i - 1], "LEFT", -iconSpacing, 0)
-                elseif growthDirection == "UP" then
-                    spellIcon:SetPoint("BOTTOM", customItemBarIcons[i - 1], "TOP", 0, iconSpacing)
-                elseif growthDirection == "DOWN" then
-                    spellIcon:SetPoint("TOP", customItemBarIcons[i - 1], "BOTTOM", 0, -iconSpacing)
+                local isWrappedRowStart = (i - 1) % lineLimit == 0
+                if isWrappedRowStart then
+                    local lineAnchorIcon = customItemBarIcons[i - lineLimit]
+                    if isHorizontalGrowth then
+                        if ShouldGrowUp(point) then
+                            spellIcon:SetPoint("BOTTOM", lineAnchorIcon, "TOP", 0, iconSpacing)
+                        else
+                            spellIcon:SetPoint("TOP", lineAnchorIcon, "BOTTOM", 0, -iconSpacing)
+                        end
+                    else
+                        if ShouldGrowLeft(point) then
+                            spellIcon:SetPoint("RIGHT", lineAnchorIcon, "LEFT", -iconSpacing, 0)
+                        else
+                            spellIcon:SetPoint("LEFT", lineAnchorIcon, "RIGHT", iconSpacing, 0)
+                        end
+                    end
+                else
+                    if growthDirection == "RIGHT" then
+                        spellIcon:SetPoint("LEFT", customItemBarIcons[i - 1], "RIGHT", iconSpacing, 0)
+                    elseif growthDirection == "LEFT" then
+                        spellIcon:SetPoint("RIGHT", customItemBarIcons[i - 1], "LEFT", -iconSpacing, 0)
+                    elseif growthDirection == "UP" then
+                        spellIcon:SetPoint("BOTTOM", customItemBarIcons[i - 1], "TOP", 0, iconSpacing)
+                    elseif growthDirection == "DOWN" then
+                        spellIcon:SetPoint("TOP", customItemBarIcons[i - 1], "BOTTOM", 0, -iconSpacing)
+                    end
                 end
             end
             ApplyCooldownText()
