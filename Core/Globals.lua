@@ -186,6 +186,41 @@ function BCDM:ApplyIconTexCoord(texture, width, height, baseZoom)
     texture:SetTexCoord(left, right, top, bottom)
 end
 
+function BCDM:IsSecretValue(value)
+    return type(value) == "number" and type(issecretvalue) == "function" and issecretvalue(value)
+end
+
+function BCDM:GetCooldownDesaturationCurves()
+    if self.CooldownDesaturationCurve and self.CooldownGCDFilterCurve then
+        return self.CooldownDesaturationCurve, self.CooldownGCDFilterCurve
+    end
+
+    if not (C_CurveUtil and C_CurveUtil.CreateCurve and Enum and Enum.LuaCurveType and Enum.LuaCurveType.Step) then
+        return nil, nil
+    end
+
+    if not self.CooldownDesaturationCurve then
+        self.CooldownDesaturationCurve = C_CurveUtil.CreateCurve()
+        if self.CooldownDesaturationCurve then
+            self.CooldownDesaturationCurve:SetType(Enum.LuaCurveType.Step)
+            self.CooldownDesaturationCurve:AddPoint(0, 0)
+            self.CooldownDesaturationCurve:AddPoint(0.001, 1)
+        end
+    end
+
+    if not self.CooldownGCDFilterCurve then
+        self.CooldownGCDFilterCurve = C_CurveUtil.CreateCurve()
+        if self.CooldownGCDFilterCurve then
+            self.CooldownGCDFilterCurve:SetType(Enum.LuaCurveType.Step)
+            self.CooldownGCDFilterCurve:AddPoint(0, 0)
+            self.CooldownGCDFilterCurve:AddPoint(1.6, 0)
+            self.CooldownGCDFilterCurve:AddPoint(1.601, 1)
+        end
+    end
+
+    return self.CooldownDesaturationCurve, self.CooldownGCDFilterCurve
+end
+
 function BCDM:Init()
     SetupSlashCommands()
     BCDM:ResolveLSM()

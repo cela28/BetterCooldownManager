@@ -41,37 +41,6 @@ local function ApplyCooldownText()
     end
 end
 
-local desaturationCurve
-local gcdFilterCurve
-
-local function IsSecretNumber(value)
-    return type(value) == "number" and type(issecretvalue) == "function" and issecretvalue(value)
-end
-
-local function EnsureCurves()
-    if desaturationCurve and gcdFilterCurve then return end
-    if not (C_CurveUtil and C_CurveUtil.CreateCurve and Enum and Enum.LuaCurveType and Enum.LuaCurveType.Step) then return end
-
-    if not desaturationCurve then
-        desaturationCurve = C_CurveUtil.CreateCurve()
-        if desaturationCurve then
-            desaturationCurve:SetType(Enum.LuaCurveType.Step)
-            desaturationCurve:AddPoint(0, 0)
-            desaturationCurve:AddPoint(0.001, 1)
-        end
-    end
-
-    if not gcdFilterCurve then
-        gcdFilterCurve = C_CurveUtil.CreateCurve()
-        if gcdFilterCurve then
-            gcdFilterCurve:SetType(Enum.LuaCurveType.Step)
-            gcdFilterCurve:AddPoint(0, 0)
-            gcdFilterCurve:AddPoint(1.6, 0)
-            gcdFilterCurve:AddPoint(1.601, 1)
-        end
-    end
-end
-
 local function SetIconDesaturation(icon, value)
     if not icon then return end
     if icon.SetDesaturation then
@@ -85,7 +54,7 @@ end
 
 local function CalculateFallbackDesaturation(startTime, duration)
     if not startTime or not duration then return 0 end
-    if IsSecretNumber(startTime) or IsSecretNumber(duration) then return 0 end
+    if BCDM:IsSecretValue(startTime) or BCDM:IsSecretValue(duration) then return 0 end
     local remaining = (startTime + duration) - GetTime()
     return remaining > 0.001 and 1 or 0
 end
@@ -401,11 +370,7 @@ local function CreateCustomIcon(itemId)
                 else
                     customIcon.Charges:SetText(tostring(itemCount))
                 end
-                local cooldownStartMs, cooldownDurationMs = customIcon.Cooldown:GetCooldownTimes()
-                local frameHasCooldown = (cooldownStartMs and cooldownDurationMs and cooldownStartMs > 0 and cooldownDurationMs > 0) or false
-                local isOnCooldown = hasActiveCooldown or frameHasCooldown
-                EnsureCurves()
-                if IsSecretNumber(startTime) or IsSecretNumber(durationTime) then
+                if BCDM:IsSecretValue(startTime) or BCDM:IsSecretValue(durationTime) then
                     SetIconDesaturation(customIcon.Icon, 0)
                 elseif hasActiveCooldown then
                     SetIconDesaturation(customIcon.Icon, CalculateFallbackDesaturation(startTime, durationTime))
