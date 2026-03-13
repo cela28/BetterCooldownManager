@@ -47,7 +47,7 @@ Plans:
 **Goal:** Verify behavioral correctness of all HideSpellOffCD branch code across WoW game states and fix any issues found
 **Requirements**: REVIEW-01 (code path trace), REVIEW-02 (scenario matrix), REVIEW-03 (API contract deep-dive), REVIEW-04 (apply fixes), REVIEW-05 (post-fix verification)
 **Depends on:** Phase 5
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 06-01-PLAN.md - Code path behavioral analysis, scenario matrix, and prioritized fix list

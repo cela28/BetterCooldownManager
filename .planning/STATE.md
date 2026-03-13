@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Not planned yet
-stopped_at: Phase 6 context gathered
-last_updated: "2026-03-13T13:10:32.985Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-13T13:34:57.249Z"
 last_activity: "2026-03-13 - Phase 6 added: Detailed API review"
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 5
-  completed_plans: 5
-  percent: 83
+  total_plans: 7
+  completed_plans: 6
+  percent: 86
 ---
 
 # Project State: Hide When Off Cooldown Feature
@@ -23,7 +23,7 @@ progress:
 **Status:** Not planned yet
 **Last activity:** 2026-03-13 - Phase 6 added: Detailed API review
 
-**Progress:** [█████████░] 83%
+**Progress:** [█████████░] 86%
 - Phase 1: Settings Infrastructure - COMPLETE
 - Phase 2: Cooldown State Detection - COMPLETE
 - Phase 3: Alpha-Based Hiding - COMPLETE
@@ -49,6 +49,8 @@ progress:
 | 05-01 | GameTooltip for hover tooltip | Standard pattern for feature descriptions, cleaner than SetDescription |
 | 05-01 | Instant-apply via RefreshHideWhenOffCooldown | Matches addon's instant-apply UX pattern for all settings |
 | 05-01 | Inline placement in toggleContainer | User-specified: no separator, header, or dedicated section |
+- [Phase 06]: Pitfall 5 (Secret Values) requires FIX-01 code change for Midnight forward-compatibility
+- [Phase 06]: No current-live bugs in HideSpellOffCD branch; 1 Midnight guard + 3 comment improvements needed
 
 ## Blockers & Concerns
 
@@ -66,6 +68,6 @@ None identified.
 
 ## Session Continuity
 
-**Last session:** 2026-03-13T13:10:32.983Z
-**Stopped at:** Phase 6 context gathered
-**Resume file:** .planning/phases/06-detailed-api-review/06-CONTEXT.md
+**Last session:** 2026-03-13T13:34:57.247Z
+**Stopped at:** Completed 06-01-PLAN.md
+**Resume file:** None
