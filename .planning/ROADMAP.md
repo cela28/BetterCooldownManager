@@ -58,7 +58,7 @@ Plans:
 **Goal:** Remove dead code and dev-mode references before merging HideSpellOffCD branch to main
 **Gap Closure:** Closes tech debt from v1.0 milestone audit
 **Depends on:** Phase 6
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 07-01-PLAN.md — Remove dead code (SetHideWhenOffCooldown, DisableHideWhenOffCooldown) and revert all _Dev references to production
