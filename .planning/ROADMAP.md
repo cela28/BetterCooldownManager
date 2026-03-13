@@ -53,6 +53,15 @@ Plans:
 - [ ] 06-01-PLAN.md - Code path behavioral analysis, scenario matrix, and prioritized fix list
 - [ ] 06-02-PLAN.md - Apply targeted fixes from findings and verify correctness
 
+### Phase 7: Pre-Merge Cleanup
+
+**Goal:** Remove dead code and dev-mode references before merging HideSpellOffCD branch to main
+**Gap Closure:** Closes tech debt from v1.0 milestone audit
+**Depends on:** Phase 6
+
+Plans:
+- [ ] 07-01-PLAN.md - Remove dead code (SetHideWhenOffCooldown, DisableHideWhenOffCooldown) and clean BetterCooldownManager_Dev references
+
 ---
 
 ## Future Considerations (v2.0+)
