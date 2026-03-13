@@ -42,9 +42,10 @@ None identified.
 | Task | Description | Status | Date |
 |------|-------------|--------|------|
 | QT-1 | Rebase HideSpellOffCD onto origin/main | COMPLETE | 2026-03-13 |
+| QT-2 | Audit all WoW API calls and internal references | COMPLETE | 2026-03-13 |
 
 ## Session Continuity
 
 **Last session:** 2026-03-13
-**Stopped at:** Completed quick task 1 - Rebase onto origin/main
-**Resume file:** None - Branch rebased and pushed to myfork
+**Stopped at:** Completed quick task 2 - API audit (37/37 checks passed)
+**Resume file:** None - Audit report at .planning/quick/2-audit-codebase-to-verify-all-wow-api-cal/2-SUMMARY.md
