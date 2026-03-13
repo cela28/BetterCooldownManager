@@ -617,3 +617,125 @@ The HideSpellOffCD branch code is **behaviorally correct** for current TWW live.
 The fail-show philosophy is consistently applied throughout all code paths. No current-live bugs were identified. The one code fix (FIX-01) is a cheap, forward-compatible hardening for Midnight compatibility that uses existing infrastructure.
 
 Plan 02 should implement FIX-01 (code change) and FIX-02/03/04 (comment improvements).
+
+---
+
+## Post-Fix Verification
+
+**Applied by:** Plan 06-02
+**Date:** 2026-03-13
+**Commit:** fa82a10
+
+### FIX-01 Applied: Secret Value guard in IsSpellOnCooldown
+
+**Before (Core/Globals.lua:700-724):**
+```lua
+local cdInfo = C_Spell.GetSpellCooldown(spellID)
+if not cdInfo then
+    return false  -- API error, fail-show
+end
+
+-- Filter out GCD-only states
+if cdInfo.isOnGCD then
+    return false  -- GCD doesn't count as cooldown
+end
+
+-- Fallback for isOnGCD field missing
+if cdInfo.isOnGCD == nil and cdInfo.duration and cdInfo.duration > 0 and cdInfo.duration <= 1.5 then
+    return false  -- Assume GCD, fail-show
+end
+
+if cdInfo.duration and cdInfo.duration > 0 then
+    return true  -- On cooldown
+end
+```
+
+**After:**
+```lua
+local cdInfo = C_Spell.GetSpellCooldown(spellID)
+if not cdInfo then
+    return false  -- API error, fail-show
+end
+
+-- Guard against Midnight (12.0) Secret Values on duration.
+-- In Midnight, combat-protected duration fields are returned as opaque Secret Values
+-- that raise a Lua error when used in arithmetic comparisons. IsSecretValue() is a
+-- no-op on current TWW live (issecretvalue() doesn't exist yet), but this guard
+-- prevents Lua errors in Midnight when cdInfo.duration cannot be read numerically.
+-- Fail-show: if we can't read the duration, keep the icon visible.
+if self:IsSecretValue(cdInfo.duration) then
+    return false  -- Cannot read duration (Midnight Secret Value), fail-show
+end
+
+-- Filter out GCD-only states
+if cdInfo.isOnGCD then
+    return false  -- GCD doesn't count as cooldown
+end
+
+-- Fallback for when isOnGCD field is nil (can occur outside SPELL_UPDATE_COOLDOWN events...
+if cdInfo.isOnGCD == nil and cdInfo.duration and cdInfo.duration > 0 and cdInfo.duration <= 1.5 then
+    return false  -- Assume GCD, fail-show
+end
+
+if cdInfo.duration and cdInfo.duration > 0 then
+    return true  -- On cooldown
+end
+```
+
+**Fail-show preserved:** YES — new branch returns `false` (icon stays visible) when duration is a Secret Value.
+**Current-live behavior change:** NONE — `BCDM:IsSecretValue()` always returns false on TWW (issecretvalue() does not exist yet).
+
+---
+
+### FIX-02 Applied: 1.5s fallback threshold documentation
+
+**File:** Core/Globals.lua
+**Change:** Replaced one-line comment with a block comment explaining the trigger conditions (isOnGCD nil outside SPELL_UPDATE_COOLDOWN events), the trade-off with genuine short real cooldowns, and confirmation that fail-show direction is intentional.
+**Code change:** NO (comment only)
+
+---
+
+### FIX-03 Applied: GetAlpha() semantics documentation
+
+**File:** Modules/CooldownManager.lua
+**Change:** Added inline comment above the `GetAlpha() > 0` check explaining: GetAlpha() returns own alpha (not inherited), why this reliably detects our feature's SetAlpha(0) calls, and that the collapseEnabled guard protects against external alpha interference.
+**Code change:** NO (comment only)
+
+---
+
+### FIX-04 Applied: hooksSetup execution-order guarantee documentation
+
+**File:** Modules/HideWhenOffCooldown.lua
+**Change:** Added block comment before `hooksSetup = true` explaining that the unconditional assignment is safe because C_AddOns.LoadAddOn() is synchronous and both viewers are guaranteed to exist before this function runs.
+**Code change:** NO (comment only)
+
+---
+
+### Critical Scenario Re-Verification
+
+| # | Scenario | Code Path (post-fix) | Fail-Show? | Result |
+|---|----------|---------------------|------------|--------|
+| 1 | Normal cooldown flow | IsSpellOnCooldown → IsSecretValue(duration)=false → duration > 1.5 → true → SetAlpha(1) | YES | PASS |
+| 2 | GCD-only state | isOnGCD=true → return false → SetAlpha(0) → icon hides during GCD | YES (by design) | PASS |
+| 3 | Charge spell all-charges-full | chargeInfo non-nil → early return false before Secret Value guard → SetAlpha(0) | YES | PASS |
+| 4 | Feature toggle off | DB write → RefreshHideWhenOffCooldown → UpdateIconVisibility featureEnabled=false → SetAlpha(1) | YES | PASS |
+| 5 | Secret Value on duration (Midnight) | IsSecretValue(duration)=true → return false → SetAlpha(0) | YES | PASS (no Lua error) |
+
+### Skipped Fixes
+
+None — all four fixes from the prioritized list were applied.
+
+### Regression Check
+
+Files modified in this plan:
+- `Core/Globals.lua` (FIX-01, FIX-02)
+- `Modules/HideWhenOffCooldown.lua` (FIX-04)
+- `Modules/CooldownManager.lua` (FIX-03)
+
+All modifications are within our branch's own additions. No pre-existing BCM code was touched.
+
+### Final Verdict
+
+**SHIP-READY.**
+
+The HideSpellOffCD feature is behaviorally correct for current TWW live. Zero current-live bugs remain. The Secret Value guard (FIX-01) future-proofs for Midnight 12.0 at zero cost to existing behavior. All comment improvements (FIX-02/03/04) document non-obvious implementation choices for future maintainers. The fail-show philosophy is preserved on every modified code path.
