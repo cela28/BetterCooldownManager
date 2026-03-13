@@ -151,14 +151,6 @@ function BCDM:EnableHideWhenOffCooldown()
     UpdateAllViewers()
 end
 
--- Disable the hide-when-off-cooldown feature
-function BCDM:DisableHideWhenOffCooldown()
-    isEnabled = false
-
-    UnregisterEvents()
-    RestoreAllIcons()
-end
-
 -- Refresh visibility (call when settings change)
 function BCDM:RefreshHideWhenOffCooldown()
     if isEnabled then

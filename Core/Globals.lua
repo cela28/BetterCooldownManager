@@ -23,16 +23,16 @@ BCDM.LDS = LibStub("LibDualSpec-1.0")
 BCDM.LEMO = LibStub("LibEditModeOverride-1.0")
 BCDM.AG = LibStub("AceGUI-3.0")
 
-BCDM.INFOBUTTON = "|TInterface\\AddOns\\BetterCooldownManager_Dev\\Media\\InfoButton.png:16:16|t "
-BCDM.ADDON_NAME = C_AddOns.GetAddOnMetadata("BetterCooldownManager_Dev", "Title")
-BCDM.ADDON_VERSION = C_AddOns.GetAddOnMetadata("BetterCooldownManager_Dev", "Version")
-BCDM.ADDON_AUTHOR = C_AddOns.GetAddOnMetadata("BetterCooldownManager_Dev", "Author")
-BCDM.ADDON_LOGO = "|TInterface\\AddOns\\BetterCooldownManager_Dev\\Media\\Logo.png:16:16|t"
+BCDM.INFOBUTTON = "|TInterface\\AddOns\\BetterCooldownManager\\Media\\InfoButton.png:16:16|t "
+BCDM.ADDON_NAME = C_AddOns.GetAddOnMetadata("BetterCooldownManager", "Title")
+BCDM.ADDON_VERSION = C_AddOns.GetAddOnMetadata("BetterCooldownManager", "Version")
+BCDM.ADDON_AUTHOR = C_AddOns.GetAddOnMetadata("BetterCooldownManager", "Author")
+BCDM.ADDON_LOGO = "|TInterface\\AddOns\\BetterCooldownManager\\Media\\Logo.png:16:16|t"
 BCDM.PRETTY_ADDON_NAME = BCDM.ADDON_LOGO .. " " .. BCDM.ADDON_NAME
 
 BCDM.CAST_BAR_TEST_MODE = false
 
-if BCDM.LSM then BCDM.LSM:Register("statusbar", "Better Blizzard", [[Interface\AddOns\BetterCooldownManager_Dev\Media\BetterBlizzard.blp]]) end
+if BCDM.LSM then BCDM.LSM:Register("statusbar", "Better Blizzard", [[Interface\AddOns\BetterCooldownManager\Media\BetterBlizzard.blp]]) end
 
 function BCDM:PrettyPrint(MSG) print(BCDM.ADDON_NAME .. ":|r " .. MSG) end
 
@@ -264,7 +264,7 @@ function BCDM:CreateCooldownViewerOverlays()
         local EssentialCooldownViewerOverlay = CreateFrame("Frame", "BCDM_EssentialCooldownViewerOverlay", UIParent, "BackdropTemplate")
         EssentialCooldownViewerOverlay:SetPoint("TOPLEFT", _G["EssentialCooldownViewer"], "TOPLEFT", -8, 8)
         EssentialCooldownViewerOverlay:SetPoint("BOTTOMRIGHT", _G["EssentialCooldownViewer"], "BOTTOMRIGHT", 8, -8)
-        EssentialCooldownViewerOverlay:SetBackdrop({ edgeFile = "Interface\\AddOns\\BetterCooldownManager_Dev\\Media\\Glow.tga", edgeSize = 8, insets = {left = -8, right = -8, top = -8, bottom = -8} })
+        EssentialCooldownViewerOverlay:SetBackdrop({ edgeFile = "Interface\\AddOns\\BetterCooldownManager\\Media\\Glow.tga", edgeSize = 8, insets = {left = -8, right = -8, top = -8, bottom = -8} })
         EssentialCooldownViewerOverlay:SetBackdropColor(0, 0, 0, 0)
         EssentialCooldownViewerOverlay:SetBackdropBorderColor(unpack(OVERLAY_COLOUR))
         EssentialCooldownViewerOverlay:Hide()
@@ -275,7 +275,7 @@ function BCDM:CreateCooldownViewerOverlays()
         local UtilityCooldownViewerOverlay = CreateFrame("Frame", "BCDM_UtilityCooldownViewerOverlay", UIParent, "BackdropTemplate")
         UtilityCooldownViewerOverlay:SetPoint("TOPLEFT", _G["UtilityCooldownViewer"], "TOPLEFT", -8, 8)
         UtilityCooldownViewerOverlay:SetPoint("BOTTOMRIGHT", _G["UtilityCooldownViewer"], "BOTTOMRIGHT", 8, -8)
-        UtilityCooldownViewerOverlay:SetBackdrop({ edgeFile = "Interface\\AddOns\\BetterCooldownManager_Dev\\Media\\Glow.tga", edgeSize = 8, insets = {left = -8, right = -8, top = -8, bottom = -8} })
+        UtilityCooldownViewerOverlay:SetBackdrop({ edgeFile = "Interface\\AddOns\\BetterCooldownManager\\Media\\Glow.tga", edgeSize = 8, insets = {left = -8, right = -8, top = -8, bottom = -8} })
         UtilityCooldownViewerOverlay:SetBackdropColor(0, 0, 0, 0)
         UtilityCooldownViewerOverlay:SetBackdropBorderColor(unpack(OVERLAY_COLOUR))
         UtilityCooldownViewerOverlay:Hide()
@@ -286,7 +286,7 @@ function BCDM:CreateCooldownViewerOverlays()
         local BuffIconCooldownViewerOverlay = CreateFrame("Frame", "BCDM_BuffIconCooldownViewerOverlay", UIParent, "BackdropTemplate")
         BuffIconCooldownViewerOverlay:SetPoint("TOPLEFT", _G["BuffIconCooldownViewer"], "TOPLEFT", -8, 8)
         BuffIconCooldownViewerOverlay:SetPoint("BOTTOMRIGHT", _G["BuffIconCooldownViewer"], "BOTTOMRIGHT", 8, -8)
-        BuffIconCooldownViewerOverlay:SetBackdrop({ edgeFile = "Interface\\AddOns\\BetterCooldownManager_Dev\\Media\\Glow.tga", edgeSize = 8, insets = {left = -8, right = -8, top = -8, bottom = -8} })
+        BuffIconCooldownViewerOverlay:SetBackdrop({ edgeFile = "Interface\\AddOns\\BetterCooldownManager\\Media\\Glow.tga", edgeSize = 8, insets = {left = -8, right = -8, top = -8, bottom = -8} })
         BuffIconCooldownViewerOverlay:SetBackdropColor(0, 0, 0, 0)
         BuffIconCooldownViewerOverlay:SetBackdropBorderColor(unpack(OVERLAY_COLOUR))
         BuffIconCooldownViewerOverlay:Hide()
@@ -645,15 +645,6 @@ function BCDM:GetHideWhenOffCooldown(barType)
     if not barType then return false end
     local barSettings = self.db.profile.CooldownManager[barType]
     return barSettings and barSettings.HideWhenOffCooldown or false
-end
-
-function BCDM:SetHideWhenOffCooldown(barType, value)
-    if not barType then return end
-    local barSettings = self.db.profile.CooldownManager[barType]
-    if barSettings then
-        barSettings.HideWhenOffCooldown = value
-        -- Future phases may add refresh/update calls here
-    end
 end
 
 -- Helper: Check setting by viewer frame name (e.g., "EssentialCooldownViewer")
