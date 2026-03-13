@@ -229,6 +229,11 @@ local function CenterWrappedRows(viewerName)
     local visibleIcons = {}
     for _, childFrame in ipairs({ viewer:GetChildren() }) do
         if childFrame and childFrame:IsShown() and childFrame.layoutIndex then
+            -- GetAlpha() returns the frame's own alpha (not the effective/inherited alpha),
+            -- so GetAlpha() == 0 reliably means our feature hid this icon via SetAlpha(0).
+            -- No other BCM code calls SetAlpha on these icon parent frames directly.
+            -- The collapseEnabled guard ensures we include all icons when the feature is off,
+            -- so any external alpha change on icons does not affect the centering calculation.
             if not collapseEnabled or childFrame:GetAlpha() > 0 then
                 table.insert(visibleIcons, childFrame)
             end

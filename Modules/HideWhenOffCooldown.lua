@@ -85,6 +85,11 @@ local function SetupRefreshLayoutHooks()
         end
     end
 
+    -- Mark hooks as installed unconditionally. This is safe because viewers are guaranteed
+    -- to exist at this call point: BCDM:Init() calls C_AddOns.LoadAddOn("Blizzard_CooldownViewer")
+    -- synchronously before SkinCooldownManager() runs, which calls EnableHideWhenOffCooldown()
+    -- at its end. Synchronous loading ensures both EssentialCooldownViewer and
+    -- UtilityCooldownViewer are created before we reach this function.
     hooksSetup = true
 end
 

@@ -23,16 +23,16 @@ BCDM.LDS = LibStub("LibDualSpec-1.0")
 BCDM.LEMO = LibStub("LibEditModeOverride-1.0")
 BCDM.AG = LibStub("AceGUI-3.0")
 
-BCDM.INFOBUTTON = "|TInterface\\AddOns\\BetterCooldownManager\\Media\\InfoButton.png:16:16|t "
-BCDM.ADDON_NAME = C_AddOns.GetAddOnMetadata("BetterCooldownManager", "Title")
-BCDM.ADDON_VERSION = C_AddOns.GetAddOnMetadata("BetterCooldownManager", "Version")
-BCDM.ADDON_AUTHOR = C_AddOns.GetAddOnMetadata("BetterCooldownManager", "Author")
-BCDM.ADDON_LOGO = "|TInterface\\AddOns\\BetterCooldownManager\\Media\\Logo.png:16:16|t"
+BCDM.INFOBUTTON = "|TInterface\\AddOns\\BetterCooldownManager_Dev\\Media\\InfoButton.png:16:16|t "
+BCDM.ADDON_NAME = C_AddOns.GetAddOnMetadata("BetterCooldownManager_Dev", "Title")
+BCDM.ADDON_VERSION = C_AddOns.GetAddOnMetadata("BetterCooldownManager_Dev", "Version")
+BCDM.ADDON_AUTHOR = C_AddOns.GetAddOnMetadata("BetterCooldownManager_Dev", "Author")
+BCDM.ADDON_LOGO = "|TInterface\\AddOns\\BetterCooldownManager_Dev\\Media\\Logo.png:16:16|t"
 BCDM.PRETTY_ADDON_NAME = BCDM.ADDON_LOGO .. " " .. BCDM.ADDON_NAME
 
 BCDM.CAST_BAR_TEST_MODE = false
 
-if BCDM.LSM then BCDM.LSM:Register("statusbar", "Better Blizzard", [[Interface\AddOns\BetterCooldownManager\Media\BetterBlizzard.blp]]) end
+if BCDM.LSM then BCDM.LSM:Register("statusbar", "Better Blizzard", [[Interface\AddOns\BetterCooldownManager_Dev\Media\BetterBlizzard.blp]]) end
 
 function BCDM:PrettyPrint(MSG) print(BCDM.ADDON_NAME .. ":|r " .. MSG) end
 
@@ -264,7 +264,7 @@ function BCDM:CreateCooldownViewerOverlays()
         local EssentialCooldownViewerOverlay = CreateFrame("Frame", "BCDM_EssentialCooldownViewerOverlay", UIParent, "BackdropTemplate")
         EssentialCooldownViewerOverlay:SetPoint("TOPLEFT", _G["EssentialCooldownViewer"], "TOPLEFT", -8, 8)
         EssentialCooldownViewerOverlay:SetPoint("BOTTOMRIGHT", _G["EssentialCooldownViewer"], "BOTTOMRIGHT", 8, -8)
-        EssentialCooldownViewerOverlay:SetBackdrop({ edgeFile = "Interface\\AddOns\\BetterCooldownManager\\Media\\Glow.tga", edgeSize = 8, insets = {left = -8, right = -8, top = -8, bottom = -8} })
+        EssentialCooldownViewerOverlay:SetBackdrop({ edgeFile = "Interface\\AddOns\\BetterCooldownManager_Dev\\Media\\Glow.tga", edgeSize = 8, insets = {left = -8, right = -8, top = -8, bottom = -8} })
         EssentialCooldownViewerOverlay:SetBackdropColor(0, 0, 0, 0)
         EssentialCooldownViewerOverlay:SetBackdropBorderColor(unpack(OVERLAY_COLOUR))
         EssentialCooldownViewerOverlay:Hide()
@@ -275,7 +275,7 @@ function BCDM:CreateCooldownViewerOverlays()
         local UtilityCooldownViewerOverlay = CreateFrame("Frame", "BCDM_UtilityCooldownViewerOverlay", UIParent, "BackdropTemplate")
         UtilityCooldownViewerOverlay:SetPoint("TOPLEFT", _G["UtilityCooldownViewer"], "TOPLEFT", -8, 8)
         UtilityCooldownViewerOverlay:SetPoint("BOTTOMRIGHT", _G["UtilityCooldownViewer"], "BOTTOMRIGHT", 8, -8)
-        UtilityCooldownViewerOverlay:SetBackdrop({ edgeFile = "Interface\\AddOns\\BetterCooldownManager\\Media\\Glow.tga", edgeSize = 8, insets = {left = -8, right = -8, top = -8, bottom = -8} })
+        UtilityCooldownViewerOverlay:SetBackdrop({ edgeFile = "Interface\\AddOns\\BetterCooldownManager_Dev\\Media\\Glow.tga", edgeSize = 8, insets = {left = -8, right = -8, top = -8, bottom = -8} })
         UtilityCooldownViewerOverlay:SetBackdropColor(0, 0, 0, 0)
         UtilityCooldownViewerOverlay:SetBackdropBorderColor(unpack(OVERLAY_COLOUR))
         UtilityCooldownViewerOverlay:Hide()
@@ -286,7 +286,7 @@ function BCDM:CreateCooldownViewerOverlays()
         local BuffIconCooldownViewerOverlay = CreateFrame("Frame", "BCDM_BuffIconCooldownViewerOverlay", UIParent, "BackdropTemplate")
         BuffIconCooldownViewerOverlay:SetPoint("TOPLEFT", _G["BuffIconCooldownViewer"], "TOPLEFT", -8, 8)
         BuffIconCooldownViewerOverlay:SetPoint("BOTTOMRIGHT", _G["BuffIconCooldownViewer"], "BOTTOMRIGHT", 8, -8)
-        BuffIconCooldownViewerOverlay:SetBackdrop({ edgeFile = "Interface\\AddOns\\BetterCooldownManager\\Media\\Glow.tga", edgeSize = 8, insets = {left = -8, right = -8, top = -8, bottom = -8} })
+        BuffIconCooldownViewerOverlay:SetBackdrop({ edgeFile = "Interface\\AddOns\\BetterCooldownManager_Dev\\Media\\Glow.tga", edgeSize = 8, insets = {left = -8, right = -8, top = -8, bottom = -8} })
         BuffIconCooldownViewerOverlay:SetBackdropColor(0, 0, 0, 0)
         BuffIconCooldownViewerOverlay:SetBackdropBorderColor(unpack(OVERLAY_COLOUR))
         BuffIconCooldownViewerOverlay:Hide()
@@ -703,14 +703,28 @@ function BCDM:IsSpellOnCooldown(spellID)
         return false  -- API error, fail-show
     end
 
+    -- Guard against Midnight (12.0) Secret Values on duration.
+    -- In Midnight, combat-protected duration fields are returned as opaque Secret Values
+    -- that raise a Lua error when used in arithmetic comparisons. IsSecretValue() is a
+    -- no-op on current TWW live (issecretvalue() doesn't exist yet), but this guard
+    -- prevents Lua errors in Midnight when cdInfo.duration cannot be read numerically.
+    -- Fail-show: if we can't read the duration, keep the icon visible.
+    if self:IsSecretValue(cdInfo.duration) then
+        return false  -- Cannot read duration (Midnight Secret Value), fail-show
+    end
+
     -- Filter out GCD-only states
     -- If isOnGCD field exists and is true, this is just GCD (not real cooldown)
     if cdInfo.isOnGCD then
         return false  -- GCD doesn't count as cooldown
     end
 
-    -- Fallback for isOnGCD field missing: GCD is typically <= 1.5 seconds
-    -- If duration > 0 but <= 1.5 and isOnGCD is nil, it's likely just GCD
+    -- Fallback for when isOnGCD field is nil (can occur outside SPELL_UPDATE_COOLDOWN events,
+    -- e.g. during PLAYER_ENTERING_WORLD or PLAYER_SPECIALIZATION_CHANGED). In those contexts
+    -- the GCD is typically not active, but if it were, duration would be <= 1.5 seconds.
+    -- Trade-off: spells with genuine short real cooldowns (0.75-1.5s) could be misclassified
+    -- here, but only during those non-SPELL_UPDATE_COOLDOWN syncs — an acceptable narrow
+    -- race. Treated as GCD = fail-show (icon stays visible when uncertain).
     if cdInfo.isOnGCD == nil and cdInfo.duration and cdInfo.duration > 0 and cdInfo.duration <= 1.5 then
         return false  -- Assume GCD, fail-show
     end
