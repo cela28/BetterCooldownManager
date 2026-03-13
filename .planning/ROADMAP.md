@@ -42,6 +42,17 @@ Plans:
 Plans:
 - [x] 05-01-PLAN.md - Add HideWhenOffCooldown checkbox to Essential/Utility settings panel with instant-apply and tooltip
 
+### Phase 6: Detailed API review
+
+**Goal:** Verify behavioral correctness of all HideSpellOffCD branch code across WoW game states and fix any issues found
+**Requirements**: REVIEW-01 (code path trace), REVIEW-02 (scenario matrix), REVIEW-03 (API contract deep-dive), REVIEW-04 (apply fixes), REVIEW-05 (post-fix verification)
+**Depends on:** Phase 5
+**Plans:** 2 plans
+
+Plans:
+- [ ] 06-01-PLAN.md - Code path behavioral analysis, scenario matrix, and prioritized fix list
+- [ ] 06-02-PLAN.md - Apply targeted fixes from findings and verify correctness
+
 ---
 
 ## Future Considerations (v2.0+)
